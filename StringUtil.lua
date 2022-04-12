@@ -2,16 +2,15 @@ local StringUtil = {}
 
 -- Splits a string based on a provided separator, or whitespace if none is specified
 -- Returns list of substrings
--- Adapted from: https://stackoverflow.com/a/7615129
+-- Adapted from: https://stackoverflow.com/a/40180465
 function StringUtil.Split(inputstr, sep)
-    sep = sep or '%s'
-    local t={}
-    for field, s in string.gmatch(inputstr, "([^"..sep.."]*)("..sep.."?)") do
-        table.insert(t,field) 
-        if s=="" then
-            return t
-        end
-    end
+    local fields = {}
+    
+    local sep = sep or " "
+    local pattern = string.format("([^%s]+)", sep)
+    string.gsub(inputstr, pattern, function(c) fields[#fields + 1] = c end)
+    
+    return fields
 end
 
 -- Returns the string contents of the given filepath
