@@ -20,7 +20,12 @@ end
 function Util.CreateClass( className, baseClass )
 
     local new_class = {}
-    local class_mt = { __index = new_class }
+    local class_mt = {
+        __index = new_class,
+        __tostring = function(currtable)
+            return currtable:ToString()
+        end
+    }
 
     function new_class.Create()
         local newinst = {}
@@ -46,6 +51,10 @@ function Util.CreateClass( className, baseClass )
 
     function new_class:ClassName()
         return className
+    end
+
+    function new_class:ToString()
+        return "ObjectOfType:"..className
     end
 
     -- Return true if the caller is an instance of theClass

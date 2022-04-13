@@ -14,8 +14,4 @@ function AbstractParseNode:New(startPos, endPos)
     return instance
 end
 
-function AbstractParseNode:Accepts(parsePointer)
-
-end
-
 return AbstractParseNode
