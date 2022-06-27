@@ -1,10 +1,10 @@
-local Util = require("Util")
+require("kengen2.Util")
 
 local ASTNode = {}
 ASTNode.__index = ASTNode
 
 function ASTNode.New(grammarRuleOrItem, startPos, endPos)
-    assert(Util.IsTable(grammarRuleOrItem))
+    assert(Util.TestUtil.IsTable(grammarRuleOrItem))
     assert(Util.IsInteger(startPos))
     assert(Util.IsInteger(endPos))
     assert(startPos <= endPos)

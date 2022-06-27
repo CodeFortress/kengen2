@@ -1,13 +1,13 @@
-local TokenTypes = require("TokenTypes")
-local Util = require("Util")
+local TokenTypes = require("kengen2.Parser.TokenTypes")
+local Util = require("kengen2.Util")
 
-local TokenizedFile = Util.CreateClass("TokenizedFile", nil)
+local TokenizedFile = Util.ClassUtil.CreateClass("TokenizedFile", nil)
 
 function TokenizedFile:New(path, stringsByLine, tokens)
-    assert(Util.IsTable(self) and self:IsA(TokenizedFile))
-    assert(Util.IsString(path))
-    assert(Util.IsTable(stringsByLine))
-    assert(Util.IsTable(tokens))
+    assert(Util.TestUtil.IsTable(self) and self:IsA(TokenizedFile))
+    assert(Util.TestUtil.IsString(path))
+    assert(Util.TestUtil.IsTable(stringsByLine))
+    assert(Util.TestUtil.IsTable(tokens))
 
     local result = self:Create()
     result.Length = #stringsByLine
@@ -24,7 +24,7 @@ function TokenizedFile:New(path, stringsByLine, tokens)
 end
 
 function TokenizedFile:__tostring()
-    assert(Util.IsTable(self) and self:IsA(TokenizedFile))
+    assert(Util.TestUtil.IsTable(self) and self:IsA(TokenizedFile))
     return self.Path
 end
 

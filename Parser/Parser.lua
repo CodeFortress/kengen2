@@ -1,19 +1,19 @@
-local TokenTypes = require("TokenTypes")
-local Util = require("Util")
+local TokenTypes = require("kengen2.Parser.TokenTypes")
+local Util = require("kengen2.Util")
 
-local ForeachParseNode = require("ForeachParseNode")
-local FuncParseNode = require("FuncParseNode")
-local IfParseNode = require("IfParseNode")
-local StartScriptParseNode = require("StartScriptParseNode")
-local StartTemplateParseNode = require("StartTemplateParseNode")
-local ScriptChunkParseNode = require("ScriptChunkParseNode")
-local TemplateChunkParseNode = require("TemplateChunkParseNode")
+local ForeachParseNode = require("kengen2.Parser.ForeachParseNode")
+local FuncParseNode = require("kengen2.Parser.FuncParseNode")
+local IfParseNode = require("kengen2.Parser.IfParseNode")
+local StartScriptParseNode = require("kengen2.Parser.StartScriptParseNode")
+local StartTemplateParseNode = require("kengen2.Parser.StartTemplateParseNode")
+local ScriptChunkParseNode = require("kengen2.Parser.ScriptChunkParseNode")
+local TemplateChunkParseNode = require("kengen2.Parser.TemplateChunkParseNode")
 
-local Parser = Util.CreateClass("Parser", nil)
+local Parser = Util.ClassUtil.CreateClass("Parser", nil)
 
 function Parser:New(tokenizedFile)
-    assert(Util.IsTable(self))
-    assert(Util.IsTable(tokenizedFile))
+    assert(Util.TestUtil.IsTable(self))
+    assert(Util.TestUtil.IsTable(tokenizedFile))
 
     local result = self:Create()
     result.CurPos = 1
@@ -23,7 +23,7 @@ end
 
 -- Returns the TYPE of the token being looked at
 function Parser:Peek()
-    assert(Util.IsTable(self) and self:IsA(Parser))
+    assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
 
     if self.CurPos > self.File.Length then
         return nil
@@ -34,7 +34,7 @@ end
 
 -- Moves the current position forward one whole token
 function Parser:Advance()
-    assert(Util.IsTable(self) and self:IsA(Parser))
+    assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
 
     -- Advance to end of this token, then add one to be at start of next token
     self.CurPos = self.File.TokensByLine[self.CurPos].EndPos + 1
@@ -43,14 +43,14 @@ end
 
 -- Returns the current Token object
 function Parser:CurToken()
-    assert(Util.IsTable(self) and self:IsA(Parser))
+    assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
 
     return self.File.TokensByLine[self.CurPos]
 end
 
 -- Returns the current Token object's type as string
 function Parser:CurTokenString()
-    assert(Util.IsTable(self) and self:IsA(Parser))
+    assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
 
     return tostring(TokenTypes.ToString[self.File.TokensByLine[self.CurPos]])
 end
@@ -74,11 +74,11 @@ end
 
 -- Bookended chunk means a chunk that has a specific start and end symbol
 function Parser:ParseBookendedBlock(last, openingSymbol, closingSymbol, nodeClass)
-    assert(Util.IsTable(self) and self:IsA(Parser))
-    assert(Util.IsNumber(last))
-    assert(Util.IsNumber(openingSymbol))
-    assert(Util.IsNumber(closingSymbol))
-    assert(Util.IsTable(nodeClass))
+    assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
+    assert(Util.TestUtil.IsNumber(last))
+    assert(Util.TestUtil.IsNumber(openingSymbol))
+    assert(Util.TestUtil.IsNumber(closingSymbol))
+    assert(Util.TestUtil.IsTable(nodeClass))
     assert(self:Peek() == openingSymbol)
 
     local last = self:FindClosingSymbol(openingSymbol, closingSymbol, true)
@@ -139,10 +139,10 @@ end
 
 -- Basic chunk just means a sequence of the same symbol of any count
 function Parser:ParseBasicChunk(last, symbol, nodeClass)
-    assert(Util.IsTable(self) and self:IsA(Parser))
-    assert(Util.IsNumber(last))
-    assert(Util.IsNumber(symbol))
-    assert(Util.IsTable(nodeClass))
+    assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
+    assert(Util.TestUtil.IsNumber(last))
+    assert(Util.TestUtil.IsNumber(symbol))
+    assert(Util.TestUtil.IsTable(nodeClass))
     assert(self:Peek() == symbol)
 
     local startPos = self.CurPos
@@ -175,9 +175,9 @@ end
 --   4:   ENDIF
 --   5: ENDIF
 function Parser:FindClosingSymbol(openingSymbol, closingSymbol, assertOnFail)
-    assert(Util.IsTable(self) and self:IsA(Parser))
-    assert(Util.IsNumber(openingSymbol))
-    assert(Util.IsNumber(closingSymbol))
+    assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
+    assert(Util.TestUtil.IsNumber(openingSymbol))
+    assert(Util.TestUtil.IsNumber(closingSymbol))
 
     assert(self:Peek() == openingSymbol, "Searching for closing symbol when opening symbol didn't even match!")
     self:Advance() -- skip the opening symbol

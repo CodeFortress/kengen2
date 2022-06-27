@@ -1,14 +1,14 @@
-local ASTNode = require("ASTNode")
-local GrammarRuleItem = require("GrammarRuleItem")
-local StringUtil = require("StringUtil")
-local Util = require("Util")
+local ASTNode = require("kengen2.ASTNode")
+local GrammarRuleItem = require("kengen2.GrammarRuleItem")
+local StringUtil = require("kengen2.Util.StringUtil")
+require("kengen2.Util")
 
 local GrammarRule = {}
 GrammarRule.__index = GrammarRule
 
 function GrammarRule.New(grammar, items)
-    assert(Util.IsTable(grammar))
-    assert(Util.IsString(items))
+    assert(Util.TestUtil.IsTable(grammar))
+    assert(Util.TestUtil.IsString(items))
 
     local self = setmetatable({}, GrammarRule)
     self.Grammar = grammar
