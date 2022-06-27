@@ -2,23 +2,7 @@ local StringUtil = require("StringUtil")
 local TableUtil = require("TableUtil")
 local Token = require("Token")
 local TokenizedFile = require("TokenizedFile")
-
-TokenTypes = {
-    Invalid = 0,
-    STARTSCRIPT = 1,
-    ENDSCRIPT = 2,
-    STARTTEMPLATE = 3,
-    ENDTEMPLATE = 4,
-    FOREACH = 5,
-    ENDFOREACH = 6,
-    IF = 7,
-    ENDIF = 8,
-    ELSEIF = 9,
-    ELSE = 10,
-    ScriptLine = 11,
-    TemplateLine = 12,
-}
-TokenTypesToString = TableUtil.Invert(TokenTypes)
+local TokenTypes = require("TokenTypes")
 
 function IsMergeableType(tokenType)
     return tokenType == TokenTypes.ScriptLine or tokenType == TokenTypes.TemplateLine
@@ -71,8 +55,8 @@ function Tokenize(filepath)
         if IsMergeableType(tokenType) and tokens[#tokens].TokenType == tokenType then
             tokens[#tokens].EndLine = tokens[#tokens].EndLine + 1
         else
-            tokens[#tokens + 1] = Token.New(tokenType, index, index)
+            tokens[#tokens + 1] = Token:New(tokenType, index, index)
         end
     end
-    return TokenizedFile.New(filepath,stringsByLine,tokens)
+    return TokenizedFile:New(filepath,stringsByLine,tokens)
 end

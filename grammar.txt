@@ -1,0 +1,9 @@
+<program> ::= <block>*
+<block> ::= <func_block> | <exec_block>
+<func_block> ::= "FUNCTION" <exec_chain> "ENDFUNCTION"
+<exec_block> ::= <if_block> | <foreach_block> | <script_block> | <template_block> | "ScriptLine"+ | "TemplateLine"+ | "CallFunc"
+<exec_chain> ::= <exec_block>*
+<if_block> ::= "IF" <exec_chain> ("ELSEIF" <exec_chain>)* ("ELSE" <exec_chain>)? "ENDIF"
+<foreach_block> ::= "FOREACH" <exec_chain> "ENDFOREACH"
+<script_block> ::= "STARTSCRIPT" <exec_chain> "ENDSCRIPT"
+<template_block> ::= "STARTTEMPLATE" <exec_chain> "ENDTEMPLATE"

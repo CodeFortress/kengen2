@@ -1,12 +1,19 @@
-local Token = {}
-Token.__index = Token
+local Util = require("Util")
 
-function Token.New(tokenType, startLine, endLine)
-    local self = setmetatable({}, Token)
-    self.TokenType = tokenType
-    self.StartLine = startLine
-    self.EndLine = endLine
-    return self
+local Token = Util.CreateClass("Token", nil)
+
+function Token:New(tokenType, startPos, endPos)
+    assert(Util.IsTable(self) and self:IsA(Token))
+    assert(Util.IsNumber(tokenType))
+    assert(Util.IsNumber(startPos))
+    assert(Util.IsNumber(endPos))
+    assert(startPos <= endPos)
+
+    local result = self:Create()
+    result.Type = tokenType
+    result.StartPos = startPos
+    result.EndPos = endPos
+    return result
 end
 
 return Token
