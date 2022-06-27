@@ -1,4 +1,4 @@
-local TableUtil = require("TableUtil")
+local TableUtil = require("kengen2.Util.TableUtil")
 
 local TokenTypes = {
     Invalid = 0,

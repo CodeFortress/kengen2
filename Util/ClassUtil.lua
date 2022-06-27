@@ -1,23 +1,7 @@
-local Util = {}
-
-function Util.IsTable(var)
-    return type(var) == "table"
-end
-
-function Util.IsString(var)
-    return type(var) == "string"
-end
-
-function Util.IsBool(var)
-    return type(var) == "boolean"
-end
-
-function Util.IsNumber(var)
-    return type(var) == "number"
-end
+local ClassUtil = {}
 
 -- Subclass creation utility, modified from http://lua-users.org/wiki/InheritanceTutorial
-function Util.CreateClass( className, baseClass )
+function ClassUtil.CreateClass( className, baseClass )
 
     local new_class = {}
     local class_mt = {
@@ -77,4 +61,4 @@ function Util.CreateClass( className, baseClass )
     return new_class
 end
 
-return Util
+return ClassUtil

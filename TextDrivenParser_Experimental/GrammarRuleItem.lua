@@ -1,6 +1,6 @@
-local ASTNode = require("ASTNode")
-local StringUtil = require("StringUtil")
-local Util = require("Util")
+local ASTNode = require("kengen2.ASTNode")
+local StringUtil = require("kengen2.Util.StringUtil")
+require("kengen2.Util")
 
 local GrammarRuleItem = {}
 GrammarRuleItem.__index = GrammarRuleItem
@@ -9,8 +9,8 @@ function GrammarRuleItem.New(grammarRule, symbol)
     local self = setmetatable({}, GrammarRuleItem)
     self.RawText = symbol
 
-    assert(Util.IsTable(grammarRule))
-    assert(Util.IsString(symbol))
+    assert(Util.TestUtil.IsTable(grammarRule))
+    assert(Util.TestUtil.IsString(symbol))
     symbol = StringUtil.Trim(symbol)
     assert(symbol:len() > 0)
 

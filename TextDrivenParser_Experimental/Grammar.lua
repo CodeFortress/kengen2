@@ -1,6 +1,6 @@
-local StringUtil = require("StringUtil")
-local GrammarRule = require("GrammarRule")
-local ASTNode = require("ASTNode")
+local StringUtil = require("kengen2.Util.StringUtil")
+local GrammarRule = require("kengen2.GrammarRule")
+local ASTNode = require("kengen2.ASTNode")
 
 local Grammar = {}
 Grammar.__index = Grammar

@@ -1,15 +1,17 @@
-local StringUtil = require("StringUtil")
-local TableUtil = require("TableUtil")
-local Token = require("Token")
-local TokenizedFile = require("TokenizedFile")
-local TokenTypes = require("TokenTypes")
+local StringUtil = require("kengen2.Util.StringUtil")
+local TableUtil = require("kengen2.Util.TableUtil")
+local Token = require("kengen2.Parser.Token")
+local TokenizedFile = require("kengen2.Parser.TokenizedFile")
+local TokenTypes = require("kengen2.Parser.TokenTypes")
 
-function IsMergeableType(tokenType)
+local Lexer = {}
+
+function Lexer.IsMergeableType(tokenType)
     return tokenType == TokenTypes.ScriptLine or tokenType == TokenTypes.TemplateLine
 end
 
 -- Takes a kengen filepath and returns a TokenizedFile
-function Tokenize(filepath)
+function Lexer.Tokenize(filepath)
     local content = StringUtil.FileToString(filepath)
     local stringsByLine = StringUtil.Split(content, "\n")
     local tokens = {}
@@ -52,7 +54,7 @@ function Tokenize(filepath)
 
         -- determine whether this line is a part of the same token
         -- or whether to create a new token
-        if IsMergeableType(tokenType) and tokens[#tokens].TokenType == tokenType then
+        if Lexer.IsMergeableType(tokenType) and tokens[#tokens].TokenType == tokenType then
             tokens[#tokens].EndLine = tokens[#tokens].EndLine + 1
         else
             tokens[#tokens + 1] = Token:New(tokenType, index, index)
@@ -60,3 +62,5 @@ function Tokenize(filepath)
     end
     return TokenizedFile:New(filepath,stringsByLine,tokens)
 end
+
+return Lexer
