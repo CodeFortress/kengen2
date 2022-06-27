@@ -2,5 +2,5 @@
 return {
 	Lexer = require("kengen2.Parser.Lexer"),
 	Parser = require("kengen2.Parser.Parser"),
-	ParseHelper = require("kengen2.Parser.ParseHelper")
+	TokenTypes = require("kengen2.Parser.TokenTypes")
 }
