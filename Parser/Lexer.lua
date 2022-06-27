@@ -1,5 +1,6 @@
 local StringUtil = require("kengen2.Util.StringUtil")
 local TableUtil = require("kengen2.Util.TableUtil")
+local TestUtil = require("kengen2.Util.TestUtil")
 local Token = require("kengen2.Parser.Token")
 local TokenizedFile = require("kengen2.Parser.TokenizedFile")
 local TokenTypes = require("kengen2.Parser.TokenTypes")
@@ -12,8 +13,27 @@ end
 
 -- Takes a kengen filepath and returns a TokenizedFile
 function Lexer.Tokenize(filepath)
-    local content = StringUtil.FileToString(filepath)
-    local stringsByLine = StringUtil.Split(content, "\n")
+	assert(TestUtil.IsString(filepath))
+	
+	local content = StringUtil.FileToString(filepath)
+	local stringsByLine, tokens = Lexer.TokenizeImpl(filepath, content)
+	return TokenizedFile:New(filepath, stringsByLine, tokens)
+end
+
+-- Takes a kengen string and returns the tokens
+function Lexer.TokenizeString(string)
+	assert(TestUtil.IsString(string))
+	
+	local stringsByLine, tokens = Lexer.TokenizeImpl("<RawString>", string)
+	return tokens
+end
+
+-- returns a pair of <stringsByLine, tokens>
+function Lexer.TokenizeImpl(debugName, stringContents)
+	assert(TestUtil.IsString(debugName))
+	assert(TestUtil.IsString(stringContents))
+	
+    local stringsByLine = StringUtil.Split(stringContents, "\n")
     local tokens = {}
     local isTemplateModeStack = {}
     function isTemplateMode()
@@ -36,12 +56,12 @@ function Lexer.Tokenize(filepath)
             elseif tokenType == TokenTypes.STARTTEMPLATE then
                 isTemplateModeStack[#isTemplateModeStack + 1] = true
             elseif tokenType == TokenTypes.ENDSCRIPT then
-                assert(not isTemplateMode(), "File "..filepath.." had an ENDSCRIPT when not in script mode at line "..index)
-                assert(#isTemplateModeStack > 0, "File "..filepath.." had an ENDSCRIPT without matching start on line "..index)
+                assert(not isTemplateMode(), "File "..debugName.." had an ENDSCRIPT when not in script mode at line "..index)
+                assert(#isTemplateModeStack > 0, "File "..debugName.." had an ENDSCRIPT without matching start on line "..index)
                 isTemplateModeStack[#isTemplateModeStack] = nil
             elseif tokenType == TokenTypes.ENDTEMPLATE then
-                assert(isTemplateMode(), "File "..filepath.." had an ENDTEMPLATE when not in template mode at line "..index)
-                assert(#isTemplateModeStack > 0, "File "..filepath.." had an ENDTEMPLATE without matching start on line "..index)
+                assert(isTemplateMode(), "File "..debugName.." had an ENDTEMPLATE when not in template mode at line "..index)
+                assert(#isTemplateModeStack > 0, "File "..debugName.." had an ENDTEMPLATE without matching start on line "..index)
                 isTemplateModeStack[#isTemplateModeStack] = nil
             end
         elseif StringUtil.StartsWith(trimmed, ">") then
@@ -54,13 +74,13 @@ function Lexer.Tokenize(filepath)
 
         -- determine whether this line is a part of the same token
         -- or whether to create a new token
-        if Lexer.IsMergeableType(tokenType) and tokens[#tokens].TokenType == tokenType then
-            tokens[#tokens].EndLine = tokens[#tokens].EndLine + 1
+        if Lexer.IsMergeableType(tokenType) and tokens[#tokens].Type == tokenType then
+            tokens[#tokens].EndPos = tokens[#tokens].EndPos + 1
         else
             tokens[#tokens + 1] = Token:New(tokenType, index, index)
         end
     end
-    return TokenizedFile:New(filepath,stringsByLine,tokens)
+    return stringsByLine, tokens
 end
 
 return Lexer

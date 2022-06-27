@@ -1,0 +1,4 @@
+STARTSCRIPT
+	print("Hello, World")
+	print("Welcome to Kengen")
+ENDSCRIPT
