@@ -9,6 +9,7 @@ function Settings:New()
     assert(Util.TestUtil.IsTable(self) and self:IsA(Settings))
 
     local instance = self:Create()
+	instance.ACCESS_STYLE_XML = false
 	instance.DIRECTORY_RECURSION = true
 	instance.EASY_DIRECTIVES = true
     instance.XML_FLATTEN_ELEMENT_TEXT = true

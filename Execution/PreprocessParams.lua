@@ -11,6 +11,7 @@ function PreprocessParams:New(tokenizedFile, listNode)
 
     local instance = self:Create()
 	instance.TokenizedFile = tokenizedFile
+	instance.Settings = tokenizedFile.Settings
     return instance
 end
 

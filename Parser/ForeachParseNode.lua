@@ -31,6 +31,8 @@ end
 function ForeachParseNode:Preprocess(preprocessParams)
 	assert(Util.TestUtil.IsTable(preprocessParams) and preprocessParams:IsA(PreprocessParams))
 	
+	self.SuperClass().Preprocess(self, preprocessParams)
+	
 	local line = preprocessParams:GetLine(self.ForeachLine)
 	
 	local foreachContents = line:match(REGEX_MATCH_FOREACH)
@@ -67,39 +69,24 @@ function ForeachParseNode:Preprocess(preprocessParams)
 	
 	local byContents = line:match(REGEX_MATCH_BY..REGEX_MATCH_SUFFIX_DO)
 	
-	--[[
-	line = line:match(REGEX_MATCH_FOREACH_SPACE)
-	line = line.."for "
 	local varName
 	if asContents ~= nil then
-		assert(ACCESS_STYLE_XML, "Line #"..tostring(lineNum).." of ".._filePath.." -- The 'AS' clause is only supported in XML style")
+		assert(preprocessParams.Settings.ACCESS_STYLE_XML, "Line #"..tostring(lineNum).." of ".._filePath.." -- The 'AS' clause is only supported in XML style")
 		varName = asContents
-		line = line..varName.." in kengen.iterator.iterate("..inContents.."."..foreachContents..", "
 	elseif ACCESS_STYLE_XML then
 		varName = foreachContents
-		line = line..varName.." in kengen.iterator.iterate("..inContents.."."..foreachContents..", "
 	else
 		varName = foreachContents
-		line = line..foreachContents.." in kengen.iterator.iterate("..inContents..", "
 	end
-	assert(varName ~= nil and varName:len() > 0, "Line #"..tostring(lineNum).." of ".._filePath.." -- has a nil/empty var name")
+	assert(varName ~= nil and varName:len() > 0,
+		preprocessParams:MakeError(self.ForeachLine, "Malformed FOREACH, got an empty var name"))
 	
-	if whereContents ~= nil then
-		line = line.."function ("..varName..") return "..whereContents.." end, "
-	else
-		line = line.."nil, "
-	end
-	
-	if byContents ~= nil then
-		local comparePhrase1 = byContents:gsub(varName, varName.."1")
-		local comparePhrase2 = byContents:gsub(varName, varName.."2")
-		line = line.."function ("..varName.."1, "..varName.."2) return "..comparePhrase1.." < "..comparePhrase2.." end) do"
-	else
-		line = line.."nil) do"
-	end
-	--]]
-	
-	self.SuperClass().Preprocess(self, preprocessParams)
+	self.ForeachContents = foreachContents
+	self.InContents = inContents
+	self.AsContents = asContents
+	self.WhereContents = whereContents
+	self.ByContents = byContents
+	self.VarName = varName
 end
 
 return ForeachParseNode
