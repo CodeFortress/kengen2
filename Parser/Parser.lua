@@ -1,3 +1,4 @@
+local ParsedTemplate = require("kengen2.Execution.ParsedTemplate")
 local TokenTypes = require("kengen2.Parser.TokenTypes")
 local Util = require("kengen2.Util")
 
@@ -5,6 +6,7 @@ local Lexer = require("kengen2.Parser.Lexer")
 local ForeachParseNode = require("kengen2.Parser.ForeachParseNode")
 local FuncParseNode = require("kengen2.Parser.FuncParseNode")
 local IfParseNode = require("kengen2.Parser.IfParseNode")
+local ListParseNode = require("kengen2.Parser.ListParseNode")
 local StartScriptParseNode = require("kengen2.Parser.StartScriptParseNode")
 local StartTemplateParseNode = require("kengen2.Parser.StartTemplateParseNode")
 local ScriptChunkParseNode = require("kengen2.Parser.ScriptChunkParseNode")
@@ -69,7 +71,8 @@ function Parser:ParseProgram()
     while self:Peek() ~= nil do
         nodesList[#nodesList + 1] = self:ParseBlock()
     end
-    return nodesList
+	local ListNode = ListParseNode:New(nodesList)
+    return ParsedTemplate:New(self.File, ListNode)
 end
 
 function Parser:ParseBlock()
@@ -124,6 +127,14 @@ function Parser:ParseExecBlock(last)
         return self:ParseScriptChunk(last)
     elseif self:Peek() == TokenTypes.TemplateLine then
         return self:ParseTemplateChunk(last)
+	elseif self:Peek() == TokenTypes.ENDFOREACH then
+		assert(false, "Unexpected ENDFOREACH without a matching FOREACH")
+	elseif self:Peek() == TokenTypes.ELSEIF then
+		assert(false, "Unexpected ELSEIF without a matching IF")
+	elseif self:Peek() == TokenTypes.ELSE then
+		assert(false, "Unexpected ELSE without a matching IF")
+	elseif self:Peek() == TokenTypes.ENDIF then
+		assert(false, "Unexpected ENDIF without a matching IF")
     end
 
     assert(false, "Unexpected symbol for starting an exec block: "..self:CurTokenString())
@@ -133,7 +144,7 @@ function Parser:ParseIfBlock(last)
     assert(not_implemented)
 end
 
-function Parser:ParseForEachBlock(last)
+function Parser:ParseForeachBlock(last)
     return self:ParseBookendedBlock(last, TokenTypes.FOREACH, TokenTypes.ENDFOREACH, ForeachParseNode)
 end
 

@@ -44,4 +44,10 @@ function TokenizedFile:PrintDebug()
     print("--End Tokens by Pos--")
 end
 
+function TokenizedFile:GetLine(pos)
+	assert(TestUtil.IsNumber(pos))
+	assert(pos >= 1 and pos <= #self.Length)
+	return self.StringsByLine[pos]
+end
+
 return TokenizedFile

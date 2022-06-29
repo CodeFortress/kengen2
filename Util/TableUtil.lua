@@ -9,4 +9,12 @@ function TableUtil.Invert(t)
     return s
 end
 
+function TableUtil.CalcLength(table)
+	local length = 0
+	for _ in pairs(table) do
+		length = length + 1
+	end
+	return length
+end
+
 return TableUtil

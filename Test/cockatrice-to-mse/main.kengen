@@ -1,0 +1,239 @@
+STARTSCRIPT
+-- this is a tool for converting cockatrice cards into magic set editor (MSE) cards using the cockatrice card xml database
+
+local utilities = require("kengen/framework/utilities")
+
+local TEMP_OUTPUT_FILE_NAME = "output.txt"
+local ZIP_FILE_NAME = "temp.zip"
+local MSE_SET_FILE_PATH = "C:\\Users\\User\\Dropbox\\MTG\\eldraine.mse-set"
+local SET_ABBREVIATION = "ELD"
+
+local cardDatabase = LOAD_XML_FILE("C:\\Users\\User\\AppData\\Local\\Cockatrice\\Cockatrice\\cards.xml")
+--local cardDatabase = LOAD_JSON_FILE("C:\\Users\\User\\Downloads\\carddatabase.json")
+--cardDatabase = cardDatabase.cockatrice_carddatabase -- go into root level
+
+OUTPUT(TEMP_OUTPUT_FILE_NAME)
+
+STARTTEMPLATE
+mse version: 0.3.8
+game: magic
+stylesheet: m15
+set info:
+	symbol: 
+styling:
+	magic-m15:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+		overlay: 
+	magic-m15-altered:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+		overlay: 
+	magic-m15-augment:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+		overlay: 
+	magic-m15-clearartifact:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+		overlay: 
+	magic-m15-extra:
+		text box mana symbols: magic-mana-small-extra-m15.mse-symbol-font
+		pt box symbols: magic-pt-symbols-extra.mse-symbol-font
+		overlay: 
+	magic-m15-leveler:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+		overlay: 
+	magic-m15-leveler-improved:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+		overlay: 
+	magic-m15-loyalty:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+		overlay: 
+	magic-m15-outlaws:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+		overlay: 
+	magic-m15-planeswalker:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+		overlay: 
+	magic-m15-split-fusable:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+		overlay: 
+	magic-m15-tapped:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+	magic-m15-tapped-FULLART:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+	magic-m15-textless:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+		overlay: 
+	magic-m15-tri-leveler:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+		level mana symbols: magic-mana-large.mse-symbol-font
+		overlay: 
+	magic-m15-vehicles:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+		overlay: 
+	magic-new-hires:
+		text box mana symbols: magic-mana-small.mse-symbol-font
+ENDTEMPLATE
+
+-- would prefer to use this syntax
+-- but the way our set information is stored in the Cockatrice database is real weird
+-- e.g. Oko is listed as "271" in the ELD set but "197s" in the PELD set (elsewhere, he's 197 in ELD)
+--FOREACH card IN cardDatabase.cards WHERE card.set[1].InnerText == SET_ABBREVIATION BY card.name:len() DO
+FOREACH card IN cardDatabase.cards BY card.name:len() DO
+
+	local rarity = "not_in_set"
+	
+	FOREACH set IN card WHERE (set.InnerText:find(SET_ABBREVIATION) ~= nil) DO
+		rarity = set.rarity
+		break
+	END
+	
+	if rarity == "not_in_set" then
+		goto skip_this_card
+	end
+	
+	if rarity == "mythic" then
+		rarity = "mythic rare"
+	end
+	
+	print (card.name)
+	print ("   index: " .. INDEX(card))
+	print ("   origIndex: " .. ORIGINAL_INDEX (card))
+	print ("   count: " .. COUNT(card))
+	print ("   isFirst: " .. tostring(IS_FIRST(card)))
+	print ("   isLast: " .. tostring( IS_LAST(card)))
+	
+	local cost
+	if card.prop.manacost == nil then
+		cost = ""
+	else
+		cost = card.prop.manacost
+	end
+	
+	local power = nil
+	local toughness = nil
+	if card.prop.pt ~= nil then
+		local ptText = card.prop.pt
+		local ptTextSplit = utilities.string_split(ptText, "/")
+		power = ptTextSplit[1]
+		toughness = ptTextSplit[2]
+	end
+	
+	local cardTypes = card.prop.type
+	if string.find(cardTypes, "Adventure") then
+		goto skip_this_card
+	end
+	local cardTypesSplit = utilities.string_split(cardTypes, "—")
+	local cardType = cardTypesSplit[1]
+	if cardType ~= nil then
+		cardType = utilities.string_trim(cardType)
+	end
+	local subTypes = cardTypesSplit[2]
+	if subTypes == nil then
+		subTypes = ""
+	end
+	
+	local colors = "colorless"
+	local colorsLetters = ""
+	if card.prop.colors ~= nil then
+		colorsLetters = card.prop.colors
+	elseif card.prop.coloridentity ~= nil then
+		colorsLetters = card.prop.coloridentity
+	end
+	local colorsList = {}
+	if string.find(colorsLetters, "W") then
+		colorsList[#colorsList + 1] = "white"
+	end
+	if string.find(colorsLetters, "U") then
+		colorsList[#colorsList + 1] = "blue"
+	end
+	if string.find(colorsLetters, "B") then
+		colorsList[#colorsList + 1] = "black"
+	end
+	if string.find(colorsLetters, "R") then
+		colorsList[#colorsList + 1] = "red"
+	end
+	if string.find(colorsLetters, "G") then
+		colorsList[#colorsList + 1] = "green"
+	end
+	if string.find(cardType, "Artifact") then
+		colorsList[#colorsList + 1] = "artifact"
+	end
+	if string.find(cardType, "Land") then
+		colorsList[#colorsList + 1] = "land"
+	end
+	if string.find(cost, "/") then
+		colorsList[#colorsList + 1] = "hybrid"
+	end
+	
+	if #colorsList > 0 then
+		colors = ""
+		for index, color in ipairs(colorsList) do
+			colors = colors..color
+			if index ~= #colorsList then
+				colors = colors..", "
+			end
+		end
+	end
+	
+	local rules = card.text
+	if rules == nil then
+		rules = ""
+	else
+		if string.find(rules, "\n") ~= nil then
+			rules = "\n"..rules
+		end
+		rules = string.gsub(rules, "\n", "\n\t\t")
+		rules = string.gsub(rules, "{", "<sym>")
+		rules = string.gsub(rules, "}", "</sym>")
+		rules = string.gsub(rules, card.name, "CARDNAME")
+	end
+	
+	STARTTEMPLATE
+card:
+	has styling: false
+	notes: 
+	time created: 2019-11-21 21:49:14
+	time modified: 2019-12-14 09:55:22
+	card color: $(colors)
+	name: $(card.name)
+	casting cost: $(cost)
+	image: 
+	super type: <word-list-type>$(cardType)</word-list-type>
+	sub type: <word-list-spell>$(subTypes)</word-list-spell>
+	rarity: $(rarity)
+	rule text: $(rules)
+	flavor text: <i-flavor></i-flavor>
+.		if power ~= nil and toughness ~= nil then
+	power: $(power)
+	toughness: $(toughness)
+.		end
+	card code text: 
+	copyright: 
+	image 2:
+	ENDTEMPLATE
+	
+	::skip_this_card::
+END
+
+STARTTEMPLATE
+version control:
+	type: none
+apprentice code: 
+ENDTEMPLATE
+
+CLOSE()
+
+local folderOfThisFile = arg[0]:match("(.-)[^%\\]+$")
+package.path = package.path .. ';'..folderOfThisFile..'\\?.lua'
+
+-- 'set' is not a variable because it's a requirement of MSE that the file in the zip be named 'set'
+print ("Copying '"..TEMP_OUTPUT_FILE_NAME.."' file to 'set'")
+os.execute("cp "..TEMP_OUTPUT_FILE_NAME.." set")
+print ("Zipping 'set' file as '"..ZIP_FILE_NAME.."'")
+os.execute("zip -1 "..ZIP_FILE_NAME.." set")
+print ("Moving file to '"..MSE_SET_FILE_PATH.."'")
+os.execute("mv "..ZIP_FILE_NAME.." "..MSE_SET_FILE_PATH)
+print ("Cleaning up old files")
+os.execute("rm "..TEMP_OUTPUT_FILE_NAME)
+os.execute("rm set")
+print ("---DONE !---")
+ENDSCRIPT

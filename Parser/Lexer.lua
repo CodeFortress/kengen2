@@ -28,6 +28,52 @@ function Lexer.TokenizeString(string)
 	return tokens
 end
 
+-- returns a token type for the provided line
+-- "easyDirectives" indicates whether you can skip the "." in front of ALL directives, even when in template mode
+function Lexer.ExtractTokenFromLine(line, isTemplateMode, easyDirectives)
+	local token, contents = Lexer.ExtractTokenAndContentFromLine(line, isTemplateMode, easyDirectives)
+	return token
+end
+
+-- returns a token type for the provided line
+-- "easyDirectives" indicates whether you can skip the "." in front of ALL directives, even when in template mode
+function Lexer.ExtractContentFromLine(line, isTemplateMode, easyDirectives)
+	local token, contents = Lexer.ExtractTokenAndContentFromLine(line, isTemplateMode, easyDirectives)
+	return contents
+end
+
+function Lexer.ExtractTokenAndContentFromLine(line, isTemplateMode, easyDirectives)
+	local firstChar = line:sub(1,1)
+	local isTemplateLine = (firstChar ~= ".") and isTemplateMode
+	if not isTemplateLine and (firstChar == ">" or firstChar == ".") then
+		line = line:sub(2) -- Remove preceding > or .
+	end
+	
+	local trimmed = StringUtil.Trim(line)
+	local firstCharPostWhitespace = trimmed:sub(1,1)
+	if not isTemplateLine and (firstCharPostWhitespace == ">" or firstCharPostWhitespace == ".") then
+		trimmed = trimmed:sub(2) -- Remove preceding > or .
+	end
+	
+	local firstSpace = trimmed:find(" ")
+	local firstWord = (firstSpace and trimmed:sub(1, firstSpace-1)) or trimmed
+	
+	local tokenType = TokenTypes[firstWord]
+	if isTemplateLine and not easyDirectives then
+		tokenType = TokenTypes.TemplateLine
+	elseif tokenType ~= nil then
+		-- no action, it's already been set correctly
+	elseif firstChar == ">" or firstCharPostWhitespace == ">" then
+		tokenType = TokenTypes.TemplateLine
+	elseif firstChar == "." or firstCharPostWhitespace == "." then
+		tokenType = TokenTypes.ScriptLine
+	else
+		tokenType = (isTemplateMode and TokenTypes.TemplateLine) or TokenTypes.ScriptLine
+	end
+	
+	return tokenType, trimmed
+end
+
 -- returns a pair of <stringsByLine, tokens>
 function Lexer.TokenizeImpl(debugName, stringContents)
 	assert(TestUtil.IsString(debugName))
@@ -44,37 +90,29 @@ function Lexer.TokenizeImpl(debugName, stringContents)
         end
     end
 
-    for index, string in ipairs(stringsByLine) do
-        local trimmed = StringUtil.Trim(stringsByLine[index])
-        local tokenType = TokenTypes[trimmed]
-        if TokenTypes[trimmed] ~= nil then
-            -- tokenType is already correct, but do extra logic
-            -- in an ideal world this would be the parser's job but it saves us so much headache to just identify
-            --  what lines here are script vs template
-            if tokenType == TokenTypes.STARTSCRIPT then
-                isTemplateModeStack[#isTemplateModeStack + 1] = false
-            elseif tokenType == TokenTypes.STARTTEMPLATE then
-                isTemplateModeStack[#isTemplateModeStack + 1] = true
-            elseif tokenType == TokenTypes.ENDSCRIPT then
-                assert(not isTemplateMode(), "File "..debugName.." had an ENDSCRIPT when not in script mode at line "..index)
-                assert(#isTemplateModeStack > 0, "File "..debugName.." had an ENDSCRIPT without matching start on line "..index)
-                isTemplateModeStack[#isTemplateModeStack] = nil
-            elseif tokenType == TokenTypes.ENDTEMPLATE then
-                assert(isTemplateMode(), "File "..debugName.." had an ENDTEMPLATE when not in template mode at line "..index)
-                assert(#isTemplateModeStack > 0, "File "..debugName.." had an ENDTEMPLATE without matching start on line "..index)
-                isTemplateModeStack[#isTemplateModeStack] = nil
-            end
-        elseif StringUtil.StartsWith(trimmed, ">") then
-            tokenType = TokenTypes.TemplateLine
-        elseif StringUtil.StartsWith(trimmed, ".") then
-            tokenType = TokenTypes.ScriptLine
-        else
-            tokenType = (isTemplateMode() and TokenTypes.TemplateLine) or TokenTypes.ScriptLine
-        end
+    for index, current in ipairs(stringsByLine) do
+		
+		local tokenType = Lexer.ExtractTokenFromLine(current, isTemplateMode(), false)
+		
+		-- in an ideal world this would be the parser's job but it saves us so much headache to just identify
+		--  what lines here are script vs template
+		if tokenType == TokenTypes.STARTSCRIPT then
+			isTemplateModeStack[#isTemplateModeStack + 1] = false
+		elseif tokenType == TokenTypes.STARTTEMPLATE then
+			isTemplateModeStack[#isTemplateModeStack + 1] = true
+		elseif tokenType == TokenTypes.ENDSCRIPT then
+			assert(not isTemplateMode(), "File "..debugName.." had an ENDSCRIPT when not in script mode at line "..index)
+			assert(#isTemplateModeStack > 0, "File "..debugName.." had an ENDSCRIPT without matching start on line "..index)
+			isTemplateModeStack[#isTemplateModeStack] = nil
+		elseif tokenType == TokenTypes.ENDTEMPLATE then
+			assert(isTemplateMode(), "File "..debugName.." had an ENDTEMPLATE when not in template mode at line "..index)
+			assert(#isTemplateModeStack > 0, "File "..debugName.." had an ENDTEMPLATE without matching start on line "..index)
+			isTemplateModeStack[#isTemplateModeStack] = nil
+		end
 
         -- determine whether this line is a part of the same token
         -- or whether to create a new token
-        if Lexer.IsMergeableType(tokenType) and tokens[#tokens].Type == tokenType then
+        if Lexer.IsMergeableType(tokenType) and #tokens > 0 and tokens[#tokens].Type == tokenType then
             tokens[#tokens].EndPos = tokens[#tokens].EndPos + 1
         else
             tokens[#tokens + 1] = Token:New(tokenType, index, index)
