@@ -1,4 +1,5 @@
 local AbstractParseNode = require("kengen2.Parser.AbstractParseNode")
+local PreprocessParams = require("kengen2.Execution.PreprocessParams")
 local Util = require("kengen2.Util")
 
 -- Parse node base class for any node that owns a list of child nodes
@@ -26,6 +27,8 @@ function ListParseNode:New(nodesList)
 end
 
 function ListParseNode:Preprocess(preprocessParams)
+	assert(Util.TestUtil.IsTable(preprocessParams) and preprocessParams:IsA(PreprocessParams))
+	
 	for _, node in ipairs(self.NodeList) do
 		node:Preprocess(preprocessParams)
 	end

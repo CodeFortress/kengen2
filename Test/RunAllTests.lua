@@ -1,6 +1,8 @@
 LU = require('kengen2.ThirdParty.luaunit.luaunit')
 assert(LU ~= nil)
 
+local Settings = require("kengen2.Framework.Settings")
+
 local Lexer = require("kengen2.Parser.Lexer")
 local Parser = require("kengen2.Parser")
 
@@ -8,6 +10,16 @@ local ParsedTemplate = require("kengen2.Execution.ParsedTemplate")
 
 local PathUtil = require("kengen2.Util.PathUtil")
 local TestUtil = require("kengen2.Util.TestUtil")
+
+TestClassUtil = {}
+
+function TestClassUtil:TestIsAFailsOnNil()
+	local function funcToFail()
+		local settings = Settings:New()
+		settings:IsA(nil)
+	end
+	LU.assertErrorMsgContains("Passed a nil class to an IsA check", funcToFail)
+end
 
 TestLexer = {}
 
@@ -63,6 +75,11 @@ function TestLexer:TestLexerExtractTokenFromLine()
 end
 
 function TestLexer:TestLexerExtractContentFromLine()
+	
+	-- First bool parameter is whether we're in template mode currently
+	-- Second bool parameter is whether "easyDirectives" is enabled
+	-- In theory, these parameters have no effect on what's considered the contents -- only the token
+	
 	LU.assertEquals(Lexer.ExtractContentFromLine("STARTSCRIPT", false, false), "STARTSCRIPT")
 	LU.assertEquals(Lexer.ExtractContentFromLine("STARTSCRIPT", false, true), "STARTSCRIPT")
 	LU.assertEquals(Lexer.ExtractContentFromLine("STARTSCRIPT", true, false), "STARTSCRIPT")
@@ -98,7 +115,7 @@ function TestLexer:TestLexerOnSimpleFile()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	assert(RunningScriptDir ~= nil)
 
-	local tokenizedFile = Parser.Lexer.Tokenize(RunningScriptDir.."/test_simple.kengen")
+	local tokenizedFile = Parser.Lexer.Tokenize(RunningScriptDir.."/test_simple.kengen", Settings:New())
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile))
 	LU.assertEquals(tokenizedFile.Length, 4)
 	LU.assertEquals(tokenizedFile.Path, RunningScriptDir.."/test_simple.kengen")
@@ -136,7 +153,8 @@ function TestLexer:TestLexerOnSimpleString()
 		[[.STARTSCRIPT
 		print("Hello, World")
 		print("Welcome to kengen!")
-		.ENDSCRIPT]])
+		.ENDSCRIPT]],
+		Settings:New())
 		
 	LU.assertEquals(#tokenizedString, 3)
 	LU.assertTrue(TestUtil.IsTable(tokenizedString[1]))
@@ -147,16 +165,19 @@ function TestLexer:TestLexerOnSimpleString()
 	LU.assertEquals(tokenizedString[3].Type, Parser.TokenTypes.ENDSCRIPT)
 end
 
--- this is currently assuming that easyDirectives is false
-function TestLexer:TestLexerOnSimpleStringButForgotPeriods()
+function TestLexer:TestLexerOnSimpleStringButForgotPeriodsAndNoEasyDirectives()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	assert(RunningScriptDir ~= nil)
 
+	local settings = Settings:New()
+	settings.EASY_DIRECTIVES = false
+	
 	local tokenizedString = Parser.Lexer.TokenizeString(
 		[[STARTSCRIPT
 		print("Hello, World")
 		print("Welcome to kengen!")
-		ENDSCRIPT]])
+		ENDSCRIPT]],
+		settings)
 		
 	LU.assertEquals(#tokenizedString, 1)
 	LU.assertTrue(TestUtil.IsTable(tokenizedString[1]))
@@ -167,7 +188,8 @@ function TestLexer:TestLexerOnComplexFile()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	assert(RunningScriptDir ~= nil)
 
-	local tokenizedFile = Parser.Lexer.Tokenize(RunningScriptDir.."/test_complex.kengen")
+	local settings = Settings:New()
+	local tokenizedFile = Parser.Lexer.Tokenize(RunningScriptDir.."/test_complex.kengen", settings)
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile))
 	LU.assertEquals(tokenizedFile.Length, 22)
 	LU.assertEquals(tokenizedFile.Path, RunningScriptDir.."/test_complex.kengen")
@@ -181,11 +203,11 @@ end
 
 TestParser = {}
 
-function TestParser:TestParserNoCrash()
+function TestParser:TestParserOnComplex()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	LU.assertTrue(RunningScriptDir ~= nil)
 
-	local Result = Parser.Parser.ParseFile(RunningScriptDir.."/test_complex.kengen")
+	local Result = Parser.Parser.ParseFile(RunningScriptDir.."/test_complex.kengen", Settings:New())
 	LU.assertTrue(Result ~= nil)
 	LU.assertTrue(Result:IsA(ParsedTemplate))
 	
@@ -196,7 +218,7 @@ function TestParser:TestParserOnCockatrice()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	LU.assertTrue(RunningScriptDir ~= nil)
 
-	local Result = Parser.Parser.ParseFile(RunningScriptDir.."/cockatrice-to-mse/main.kengen")
+	local Result = Parser.Parser.ParseFile(RunningScriptDir.."/cockatrice-to-mse/main.kengen", Settings:New())
 	LU.assertTrue(Result ~= nil)
 	LU.assertTrue(Result:IsA(ParsedTemplate))
 	

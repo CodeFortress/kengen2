@@ -1,3 +1,4 @@
+local Settings = require ("kengen2.Framework.Settings")
 local StringUtil = require("kengen2.Util.StringUtil")
 local TableUtil = require("kengen2.Util.TableUtil")
 local TestUtil = require("kengen2.Util.TestUtil")
@@ -12,19 +13,21 @@ function Lexer.IsMergeableType(tokenType)
 end
 
 -- Takes a kengen filepath and returns a TokenizedFile
-function Lexer.Tokenize(filepath)
+function Lexer.Tokenize(filepath, settings)
 	assert(TestUtil.IsString(filepath))
+	assert(TestUtil.IsTable(settings) and settings:IsA(Settings))
 	
 	local content = StringUtil.FileToString(filepath)
-	local stringsByLine, tokens = Lexer.TokenizeImpl(filepath, content)
-	return TokenizedFile:New(filepath, stringsByLine, tokens)
+	local stringsByLine, tokens = Lexer.TokenizeImpl(filepath, content, settings)
+	return TokenizedFile:New(filepath, stringsByLine, tokens, settings)
 end
 
 -- Takes a kengen string and returns the tokens
-function Lexer.TokenizeString(string)
+function Lexer.TokenizeString(string, settings)
 	assert(TestUtil.IsString(string))
+	assert(TestUtil.IsTable(settings) and settings:IsA(Settings))
 	
-	local stringsByLine, tokens = Lexer.TokenizeImpl("<RawString>", string)
+	local stringsByLine, tokens = Lexer.TokenizeImpl("<RawString>", string, settings)
 	return tokens
 end
 
@@ -38,11 +41,19 @@ end
 -- returns a token type for the provided line
 -- "easyDirectives" indicates whether you can skip the "." in front of ALL directives, even when in template mode
 function Lexer.ExtractContentFromLine(line, isTemplateMode, easyDirectives)
+	assert(TestUtil.IsString(line))
+	assert(TestUtil.IsBool(isTemplateMode))
+	assert(TestUtil.IsBool(easyDirectives))
+	
 	local token, contents = Lexer.ExtractTokenAndContentFromLine(line, isTemplateMode, easyDirectives)
 	return contents
 end
 
 function Lexer.ExtractTokenAndContentFromLine(line, isTemplateMode, easyDirectives)
+	assert(TestUtil.IsString(line))
+	assert(TestUtil.IsBool(isTemplateMode))
+	assert(TestUtil.IsBool(easyDirectives))
+	
 	local firstChar = line:sub(1,1)
 	local isTemplateLine = (firstChar ~= ".") and isTemplateMode
 	if not isTemplateLine and (firstChar == ">" or firstChar == ".") then
@@ -75,9 +86,10 @@ function Lexer.ExtractTokenAndContentFromLine(line, isTemplateMode, easyDirectiv
 end
 
 -- returns a pair of <stringsByLine, tokens>
-function Lexer.TokenizeImpl(debugName, stringContents)
+function Lexer.TokenizeImpl(debugName, stringContents, settings)
 	assert(TestUtil.IsString(debugName))
 	assert(TestUtil.IsString(stringContents))
+	assert(TestUtil.IsTable(settings) and settings:IsA(Settings))
 	
     local stringsByLine = StringUtil.Split(stringContents, "\n")
     local tokens = {}
@@ -92,7 +104,7 @@ function Lexer.TokenizeImpl(debugName, stringContents)
 
     for index, current in ipairs(stringsByLine) do
 		
-		local tokenType = Lexer.ExtractTokenFromLine(current, isTemplateMode(), false)
+		local tokenType = Lexer.ExtractTokenFromLine(current, isTemplateMode(), settings.EASY_DIRECTIVES)
 		
 		-- in an ideal world this would be the parser's job but it saves us so much headache to just identify
 		--  what lines here are script vs template

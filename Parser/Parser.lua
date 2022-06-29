@@ -1,4 +1,5 @@
 local ParsedTemplate = require("kengen2.Execution.ParsedTemplate")
+local Settings = require("kengen2.Framework.Settings")
 local TokenTypes = require("kengen2.Parser.TokenTypes")
 local Util = require("kengen2.Util")
 
@@ -15,8 +16,11 @@ local TemplateChunkParseNode = require("kengen2.Parser.TemplateChunkParseNode")
 local Parser = Util.ClassUtil.CreateClass("Parser", nil)
 
 -- Returns tree of nodes
-function Parser.ParseFile(path)
-	local tokenizedFile = Lexer.Tokenize(path)
+function Parser.ParseFile(path, settings)
+	assert(Util.TestUtil.IsString(path))
+    assert(Util.TestUtil.IsTable(settings) and settings:IsA(Settings))
+	
+	local tokenizedFile = Lexer.Tokenize(path, settings)
 	local parser = Parser:New(tokenizedFile)
 	return parser:ParseProgram()
 end

@@ -1,13 +1,15 @@
+local Settings = require("kengen2.Framework.Settings")
 local TokenTypes = require("kengen2.Parser.TokenTypes")
 local Util = require("kengen2.Util")
 
 local TokenizedFile = Util.ClassUtil.CreateClass("TokenizedFile", nil)
 
-function TokenizedFile:New(path, stringsByLine, tokens)
+function TokenizedFile:New(path, stringsByLine, tokens, settings)
     assert(Util.TestUtil.IsTable(self) and self:IsA(TokenizedFile))
     assert(Util.TestUtil.IsString(path))
     assert(Util.TestUtil.IsTable(stringsByLine))
     assert(Util.TestUtil.IsTable(tokens))
+	assert(Util.TestUtil.IsTable(settings) and settings:IsA(Settings))
 
     local result = self:Create()
     result.Length = #stringsByLine
@@ -15,6 +17,7 @@ function TokenizedFile:New(path, stringsByLine, tokens)
     result.StringsByLine = stringsByLine
     result.Tokens = tokens
     result.TokensByLine = {}
+	result.Settings = settings
     for _, token in ipairs(result.Tokens) do
         for pos = token.StartPos, token.EndPos, 1 do
             result.TokensByLine[pos] = token
@@ -45,8 +48,8 @@ function TokenizedFile:PrintDebug()
 end
 
 function TokenizedFile:GetLine(pos)
-	assert(TestUtil.IsNumber(pos))
-	assert(pos >= 1 and pos <= #self.Length)
+	assert(Util.TestUtil.IsNumber(pos))
+	assert(pos >= 1 and pos <= self.Length)
 	return self.StringsByLine[pos]
 end
 

@@ -10,6 +10,7 @@ function Settings:New()
 
     local instance = self:Create()
 	instance.DIRECTORY_RECURSION = true
+	instance.EASY_DIRECTIVES = true
     instance.XML_FLATTEN_ELEMENT_TEXT = true
     instance.XML_ELEMENT_TEXT_KEY = "InnerText"
     return instance

@@ -43,6 +43,7 @@ function ClassUtil.CreateClass( className, baseClass )
 
     -- Return true if the caller is an instance of theClass
     function new_class:IsA( theClass )
+		assert(theClass ~= nil, "Passed a nil class to an IsA check. Did you forget to require the class file?")
         local b_isa = false
 
         local cur_class = new_class

@@ -84,7 +84,7 @@ FOREACH card IN cardDatabase.cards BY card.name:len() DO
 	FOREACH set IN card WHERE (set.InnerText:find(SET_ABBREVIATION) ~= nil) DO
 		rarity = set.rarity
 		break
-	END
+	ENDFOREACH
 	
 	if rarity == "not_in_set" then
 		goto skip_this_card
@@ -212,7 +212,7 @@ card:
 	ENDTEMPLATE
 	
 	::skip_this_card::
-END
+ENDFOREACH
 
 STARTTEMPLATE
 version control:

@@ -15,7 +15,13 @@ function PreprocessParams:New(tokenizedFile, listNode)
 end
 
 function PreprocessParams:GetLine(pos)
-	return instance.TokenizedFile:GetLine(pos)
+	assert(Util.TestUtil.IsTable(self) and self:IsA(PreprocessParams))
+	return self.TokenizedFile:GetLine(pos)
+end
+
+function PreprocessParams:MakeError(lineNum, msg)
+	assert(Util.TestUtil.IsTable(self) and self:IsA(PreprocessParams))
+	return self.TokenizedFile.Path..":"..lineNum.." -- "..msg
 end
 
 return PreprocessParams

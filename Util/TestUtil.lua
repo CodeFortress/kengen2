@@ -12,6 +12,8 @@ function TestUtil.IsBool(var)
     return type(var) == "boolean"
 end
 
+TestUtil.IsBoolean = TestUtil.IsBool
+
 function TestUtil.IsNumber(var)
     return type(var) == "number"
 end
