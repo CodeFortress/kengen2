@@ -4,10 +4,12 @@ local Util = require("kengen2.Util")
 
 local TokenizedFile = Util.ClassUtil.CreateClass("TokenizedFile", nil)
 
-function TokenizedFile:New(path, stringsByLine, tokens, settings)
+function TokenizedFile:New(path, stringsByLine, cleanStringsByLine, tokens, settings)
     assert(Util.TestUtil.IsTable(self) and self:IsA(TokenizedFile))
     assert(Util.TestUtil.IsString(path))
     assert(Util.TestUtil.IsTable(stringsByLine))
+	assert(Util.TestUtil.IsTable(cleanStringsByLine))
+	assert(#stringsByLine == #cleanStringsByLine)
     assert(Util.TestUtil.IsTable(tokens))
 	assert(Util.TestUtil.IsTable(settings) and settings:IsA(Settings))
 
@@ -15,14 +17,17 @@ function TokenizedFile:New(path, stringsByLine, tokens, settings)
     result.Length = #stringsByLine
     result.Path = path
     result.StringsByLine = stringsByLine
+	result.CleanStringsByLine = cleanStringsByLine
     result.Tokens = tokens
-    result.TokensByLine = {}
 	result.Settings = settings
+	
+    result.TokensByLine = {}
     for _, token in ipairs(result.Tokens) do
         for pos = token.StartPos, token.EndPos, 1 do
             result.TokensByLine[pos] = token
         end
     end
+	
     return result
 end
 
@@ -47,10 +52,16 @@ function TokenizedFile:PrintDebug()
     print("--End Tokens by Pos--")
 end
 
-function TokenizedFile:GetLine(pos)
+function TokenizedFile:GetRawLine(pos)
 	assert(Util.TestUtil.IsNumber(pos))
 	assert(pos >= 1 and pos <= self.Length)
 	return self.StringsByLine[pos]
+end
+
+function TokenizedFile:GetCleanLine(pos)
+	assert(Util.TestUtil.IsNumber(pos))
+	assert(pos >= 1 and pos <= self.Length)
+	return self.CleanStringsByLine[pos]
 end
 
 return TokenizedFile

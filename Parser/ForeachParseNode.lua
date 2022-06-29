@@ -1,5 +1,6 @@
+local Iterator = require("kengen2.Framework.Iterator")
 local ListParseNode = require("kengen2.Parser.ListParseNode")
-local PreprocessParams = require("kengen2.Execution.PreprocessParams")
+local PreprocessState = require("kengen2.Execution.PreprocessState")
 local Util = require("kengen2.Util")
 
 local ForeachParseNode = Util.ClassUtil.CreateClass("ForeachParseNode", ListParseNode)
@@ -28,18 +29,18 @@ function ForeachParseNode:New(nodesList)
     return instance
 end
 
-function ForeachParseNode:Preprocess(preprocessParams)
-	assert(Util.TestUtil.IsTable(preprocessParams) and preprocessParams:IsA(PreprocessParams))
+function ForeachParseNode:Preprocess(preprocessState)
+	assert(Util.TestUtil.IsTable(preprocessState) and preprocessState:IsA(PreprocessState))
 	
-	self.SuperClass().Preprocess(self, preprocessParams)
+	self.SuperClass().Preprocess(self, preprocessState)
 	
-	local line = preprocessParams:GetLine(self.ForeachLine)
+	local line = preprocessState:GetRawLine(self.ForeachLine)
 	
 	local foreachContents = line:match(REGEX_MATCH_FOREACH)
 	assert(foreachContents ~= nil,
-		preprocessParams:MakeError(self.ForeachLine, "Malformed FOREACH, could not identify what's between FOREACH and IN"))
+		preprocessState:MakeError(self.ForeachLine, "Malformed FOREACH, could not identify what's between FOREACH and IN"))
 	assert(line:find(REGEX_MATCH_SUFFIX_DO) ~= nil,
-		preprocessParams:MakeError(self.ForeachLine, "FOREACH loop without a DO on the same line; this is not supported yet"))
+		preprocessState:MakeError(self.ForeachLine, "FOREACH loop without a DO on the same line; this is not supported yet"))
 	
 	local inContents = line:match(REGEX_MATCH_IN..REGEX_MATCH_SUFFIX_AS)
 	if inContents == nil then
@@ -52,7 +53,7 @@ function ForeachParseNode:Preprocess(preprocessParams)
 		inContents = line:match(REGEX_MATCH_IN..REGEX_MATCH_SUFFIX_DO)
 	end
 	assert(inContents ~= nil,
-		preprocessParams:MakeError(self.ForeachLine, "Malformed FOREACH, does not have a valid IN clause"))
+		preprocessState:MakeError(self.ForeachLine, "Malformed FOREACH, does not have a valid IN clause"))
 	
 	local asContents = line:match(REGEX_MATCH_AS..REGEX_MATCH_SUFFIX_WHERE)
 	if asContents == nil then
@@ -70,16 +71,37 @@ function ForeachParseNode:Preprocess(preprocessParams)
 	local byContents = line:match(REGEX_MATCH_BY..REGEX_MATCH_SUFFIX_DO)
 	
 	local varName
+	local foreachFuncLoader
 	if asContents ~= nil then
-		assert(preprocessParams.Settings.ACCESS_STYLE_XML, "Line #"..tostring(lineNum).." of ".._filePath.." -- The 'AS' clause is only supported in XML style")
+		assert(preprocessState.Settings.ACCESS_STYLE_XML, "Line #"..tostring(lineNum).." of ".._filePath.." -- The 'AS' clause is only supported in XML style")
 		varName = asContents
+		foreachFuncLoader = load("return "..inContents.."."..foreachContents)
 	elseif ACCESS_STYLE_XML then
 		varName = foreachContents
+		foreachFuncLoader = load("return "..inContents.."."..foreachContents)
 	else
 		varName = foreachContents
+		foreachFuncLoader = load("return "..inContents)
 	end
 	assert(varName ~= nil and varName:len() > 0,
-		preprocessParams:MakeError(self.ForeachLine, "Malformed FOREACH, got an empty var name"))
+		preprocessState:MakeError(self.ForeachLine, "Malformed FOREACH, got an empty var name"))
+	
+	local whereFuncLoader = nil
+	if whereContents ~= nil then
+		whereFuncLoader = load("return function ("..varName..") return "..whereContents.." end")
+	end
+	
+	local byFuncLoader = nil
+	if byContents ~= nil then
+		local comparePhrase1 = byContents:gsub(varName, varName.."1")
+		local comparePhrase2 = byContents:gsub(varName, varName.."2")
+		byFuncLoader = load("return function ("..varName.."1, "..varName.."2) return "..comparePhrase1.." < "..comparePhrase2.." end")
+	end
+	
+	local foreachFunc = foreachFuncLoader()
+	local whereFunc = (whereFuncLoader and whereFuncLoader()) or nil
+	local byFunc = (byFuncLoader and byFuncLoader()) or nil
+	self.Iterator = Iterator:New(foreachFunc, whereFunc, byFunc)
 	
 	self.ForeachContents = foreachContents
 	self.InContents = inContents

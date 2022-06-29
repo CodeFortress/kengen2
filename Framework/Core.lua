@@ -296,6 +296,8 @@ function TranslateKengenToOutput(fullPath, settings)
 	assert(TestUtil.IsTable(settings) and settings:IsA(Settings))
 	
 	local parsedTemplate = Parser.ParseFile(fullPath)
+	
+	parsedTemplate.Execute(outputStream)
 end
 
 function TranslateFilesInPath (_path, _settings)

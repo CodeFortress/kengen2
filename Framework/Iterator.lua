@@ -2,7 +2,21 @@
 -- This file was used in CoGS for CA, but was part of kengen first
 -- Changes have been made for kengen2
 
-local Iterator = {}
+local Util = require("kengen2.Util")
+
+local Iterator = Util.ClassUtil.CreateClass("Iterator", nil)
+
+function Iterator:New()
+    assert(Util.TestUtil.IsTable(self) and self:IsA(Iterator))
+
+    local instance = self:Create()
+	instance.ACCESS_STYLE_XML = false
+	instance.DIRECTORY_RECURSION = true
+	instance.EASY_DIRECTIVES = true
+    instance.XML_FLATTEN_ELEMENT_TEXT = true
+    instance.XML_ELEMENT_TEXT_KEY = "InnerText"
+    return instance
+end
 
 function Iterator.Count(value)
 	return #value.__kengen_iter
@@ -20,7 +34,7 @@ function Iterator.IsLast(value)
 	return Iterator.index(value) == Iterator.Count(value)
 end
 
--- _data is a table with the values we're iterating
+-- _data is a function that returns the values we're iterating
 -- _where is a function which takes a single value as input and returns a bool
 -- _by is a function used to sort the order of the iteration
 function Iterator.iterate(_data, _where, _by)

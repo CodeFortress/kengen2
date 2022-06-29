@@ -14,4 +14,12 @@ function AbstractParseNode:New(startPos, endPos)
     return instance
 end
 
+function AbstractParseNode:Preprocess(preprocessState)
+	error(self:ClassName().." needs to override Preprocess")
+end
+
+function AbstractParseNode:Execute(executionState)
+	error(self:ClassName().." needs to override Execute")
+end
+
 return AbstractParseNode

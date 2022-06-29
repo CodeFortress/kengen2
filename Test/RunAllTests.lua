@@ -7,6 +7,8 @@ local Lexer = require("kengen2.Parser.Lexer")
 local Parser = require("kengen2.Parser")
 
 local ParsedTemplate = require("kengen2.Execution.ParsedTemplate")
+local FileOutputStream = require("kengen2.Execution.FileOutputStream")
+local MemoryOutputStream = require("kengen2.Execution.MemoryOutputStream")
 
 local PathUtil = require("kengen2.Util.PathUtil")
 local TestUtil = require("kengen2.Util.TestUtil")
@@ -131,7 +133,7 @@ function TestLexer:TestLexerOnSimpleFile()
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile.Tokens[2]))
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile.Tokens[3]))
 	LU.assertEquals(tokenizedFile.Tokens[1].Type, Parser.TokenTypes.STARTSCRIPT)
-	LU.assertEquals(tokenizedFile.Tokens[2].Type, Parser.TokenTypes.ScriptLine)
+	LU.assertEquals(tokenizedFile.Tokens[2].Type, Parser.TokenTypes.TemplateLine)
 	LU.assertEquals(tokenizedFile.Tokens[3].Type, Parser.TokenTypes.ENDSCRIPT)
 	
 	LU.assertEquals(#tokenizedFile.TokensByLine, 4)
@@ -140,8 +142,8 @@ function TestLexer:TestLexerOnSimpleFile()
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile.TokensByLine[3]))
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile.TokensByLine[4]))
 	LU.assertEquals(tokenizedFile.TokensByLine[1].Type, Parser.TokenTypes.STARTSCRIPT)
-	LU.assertEquals(tokenizedFile.TokensByLine[2].Type, Parser.TokenTypes.ScriptLine)
-	LU.assertEquals(tokenizedFile.TokensByLine[3].Type, Parser.TokenTypes.ScriptLine)
+	LU.assertEquals(tokenizedFile.TokensByLine[2].Type, Parser.TokenTypes.TemplateLine)
+	LU.assertEquals(tokenizedFile.TokensByLine[3].Type, Parser.TokenTypes.TemplateLine)
 	LU.assertEquals(tokenizedFile.TokensByLine[4].Type, Parser.TokenTypes.ENDSCRIPT)
 end
 
@@ -203,6 +205,17 @@ end
 
 TestParser = {}
 
+function TestParser:TestParserOnSimple()
+	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
+	LU.assertTrue(RunningScriptDir ~= nil)
+
+	local Result = Parser.Parser.ParseFile(RunningScriptDir.."/test_simple.kengen", Settings:New())
+	LU.assertTrue(Result ~= nil)
+	LU.assertTrue(Result:IsA(ParsedTemplate))
+	
+	-- TODO Actually verify the output
+end
+
 function TestParser:TestParserOnComplex()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	LU.assertTrue(RunningScriptDir ~= nil)
@@ -225,5 +238,20 @@ function TestParser:TestParserOnCockatrice()
 	-- TODO Actually verify the output
 end
 
+TestGenerator = {}
+
+function TestGenerator:TestGeneratorOnSimple()
+	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
+	LU.assertTrue(RunningScriptDir ~= nil)
+
+	local parsedTemplate = Parser.Parser.ParseFile(RunningScriptDir.."/test_simple.kengen", Settings:New())
+	LU.assertTrue(parsedTemplate ~= nil)
+	LU.assertTrue(parsedTemplate:IsA(ParsedTemplate))
+	
+	local resultsStream = MemoryOutputStream:New()
+	parsedTemplate:Execute(resultsStream)
+	
+	LU.assertEquals(resultsStream.FinalizedData, "Hello, World\nWelcome to Kengen!\n")
+end
 
 os.exit( LU.LuaUnit.run() )

@@ -18,8 +18,8 @@ function Lexer.Tokenize(filepath, settings)
 	assert(TestUtil.IsTable(settings) and settings:IsA(Settings))
 	
 	local content = StringUtil.FileToString(filepath)
-	local stringsByLine, tokens = Lexer.TokenizeImpl(filepath, content, settings)
-	return TokenizedFile:New(filepath, stringsByLine, tokens, settings)
+	local stringsByLine, cleanStringsByLine, tokens = Lexer.TokenizeImpl(filepath, content, settings)
+	return TokenizedFile:New(filepath, stringsByLine, cleanStringsByLine, tokens, settings)
 end
 
 -- Takes a kengen string and returns the tokens
@@ -27,7 +27,7 @@ function Lexer.TokenizeString(string, settings)
 	assert(TestUtil.IsString(string))
 	assert(TestUtil.IsTable(settings) and settings:IsA(Settings))
 	
-	local stringsByLine, tokens = Lexer.TokenizeImpl("<RawString>", string, settings)
+	local stringsByLine, cleanStringsByLine, tokens = Lexer.TokenizeImpl("<RawString>", string, settings)
 	return tokens
 end
 
@@ -85,13 +85,14 @@ function Lexer.ExtractTokenAndContentFromLine(line, isTemplateMode, easyDirectiv
 	return tokenType, trimmed
 end
 
--- returns a pair of <stringsByLine, tokens>
+-- returns a triplet of <stringsByLine, cleanStringsByLine, tokens>
 function Lexer.TokenizeImpl(debugName, stringContents, settings)
 	assert(TestUtil.IsString(debugName))
 	assert(TestUtil.IsString(stringContents))
 	assert(TestUtil.IsTable(settings) and settings:IsA(Settings))
 	
     local stringsByLine = StringUtil.Split(stringContents, "\n")
+	local cleanStringsByLine = {}
     local tokens = {}
     local isTemplateModeStack = {}
     function isTemplateMode()
@@ -104,7 +105,7 @@ function Lexer.TokenizeImpl(debugName, stringContents, settings)
 
     for index, current in ipairs(stringsByLine) do
 		
-		local tokenType = Lexer.ExtractTokenFromLine(current, isTemplateMode(), settings.EASY_DIRECTIVES)
+		local tokenType, cleanString = Lexer.ExtractTokenAndContentFromLine(current, isTemplateMode(), settings.EASY_DIRECTIVES)
 		
 		-- in an ideal world this would be the parser's job but it saves us so much headache to just identify
 		--  what lines here are script vs template
@@ -129,8 +130,10 @@ function Lexer.TokenizeImpl(debugName, stringContents, settings)
         else
             tokens[#tokens + 1] = Token:New(tokenType, index, index)
         end
+		
+		cleanStringsByLine[index] = cleanString
     end
-    return stringsByLine, tokens
+    return stringsByLine, cleanStringsByLine, tokens
 end
 
 return Lexer
