@@ -1,18 +1,16 @@
 STARTSCRIPT
 -- this is a tool for converting cockatrice cards into magic set editor (MSE) cards using the cockatrice card xml database
 
-local utilities = require("kengen/framework/utilities")
+local Kengen = require("Kengen2")
 
-local TEMP_OUTPUT_FILE_NAME = "output.txt"
 local ZIP_FILE_NAME = "temp.zip"
 local MSE_SET_FILE_PATH = "C:\\Users\\User\\Dropbox\\MTG\\eldraine.mse-set"
 local SET_ABBREVIATION = "ELD"
 
-local cardDatabase = LOAD_XML_FILE("C:\\Users\\User\\AppData\\Local\\Cockatrice\\Cockatrice\\cards.xml")
+local settings = Kengen.Framework.Settings:New()
+cardDatabase = Kengen.LoadXmlFile("C:\\Users\\User\\AppData\\Local\\Cockatrice\\Cockatrice\\cards.xml", settings)
 --local cardDatabase = LOAD_JSON_FILE("C:\\Users\\User\\Downloads\\carddatabase.json")
 --cardDatabase = cardDatabase.cockatrice_carddatabase -- go into root level
-
-OUTPUT(TEMP_OUTPUT_FILE_NAME)
 
 STARTTEMPLATE
 mse version: 0.3.8
@@ -79,11 +77,10 @@ ENDTEMPLATE
 --FOREACH card IN cardDatabase.cards WHERE card.set[1].InnerText == SET_ABBREVIATION BY card.name:len() DO
 FOREACH card IN cardDatabase.cards BY card.name:len() DO
 
-	local rarity = "not_in_set"
+	rarity = "not_in_set"
 	
 	FOREACH set IN card WHERE (set.InnerText:find(SET_ABBREVIATION) ~= nil) DO
 		rarity = set.rarity
-		break
 	ENDFOREACH
 	
 	if rarity == "not_in_set" then

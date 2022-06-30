@@ -6,15 +6,16 @@ local Util = require("kengen2.Util")
 
 local Iterator = Util.ClassUtil.CreateClass("Iterator", nil)
 
-function Iterator:New()
+-- data is the actual table being iterated over
+-- whereFunc is a function which takes a single value as input and returns a bool
+-- byFunc is a function used to sort the order of the iteration
+function Iterator:New(data, whereFunc, byFunc)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Iterator))
 
     local instance = self:Create()
-	instance.ACCESS_STYLE_XML = false
-	instance.DIRECTORY_RECURSION = true
-	instance.EASY_DIRECTIVES = true
-    instance.XML_FLATTEN_ELEMENT_TEXT = true
-    instance.XML_ELEMENT_TEXT_KEY = "InnerText"
+	instance.Data = data
+	instance.WhereFunc = whereFunc
+	instance.ByFunc = byFunc
     return instance
 end
 
@@ -34,12 +35,9 @@ function Iterator.IsLast(value)
 	return Iterator.index(value) == Iterator.Count(value)
 end
 
--- _data is a function that returns the values we're iterating
--- _where is a function which takes a single value as input and returns a bool
--- _by is a function used to sort the order of the iteration
-function Iterator.iterate(_data, _where, _by)
+function Iterator:Make_Iterator()
 	
-	if _data == nil then
+	if self.Data == nil then
 		return function() return nil end
 	end
 	
@@ -53,8 +51,8 @@ function Iterator.iterate(_data, _where, _by)
 	-- iterate over the data (the irony!) to construct the filtered iterator
 	-- also create the lookup table for original indices
 	local origIndex = 1
-	for _,v in pairs(_data) do
-		if _where == nil or _where(v) then
+	for _,v in pairs(self.Data) do
+		if self.WhereFunc == nil or self.WhereFunc(v) then
 			table.insert(itOut, v)
 			itOut.__origIndices[v] = origIndex
 			
@@ -65,8 +63,8 @@ function Iterator.iterate(_data, _where, _by)
 		origIndex = origIndex + 1
 	end
 	
-	if _by ~= nil then
-		table.sort(itOut, _by)
+	if self.ByFunc ~= nil then
+		table.sort(itOut, self.ByFunc)
 	end
 	
 	itOut.Count = #itOut

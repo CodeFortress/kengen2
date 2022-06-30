@@ -18,7 +18,12 @@ function ScriptChunkParseNode:Execute(executionState)
 	end
 	
 	local fullChunk = table.concat(scriptLines, "\n")
-	load(fullChunk)()
+	local chunkFunc = load(fullChunk)
+	if chunkFunc ~= nil then
+		chunkFunc()
+	else
+		error("chunkFunc was nil after parsing: \n"..fullChunk)
+	end
 end
 
 return ScriptChunkParseNode

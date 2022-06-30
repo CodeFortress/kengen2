@@ -1,8 +1,7 @@
-local folderOfThisFile = arg[0]:match("(.-)[^%\\]+$")
-package.path = package.path .. ';'..folderOfThisFile..'\\?.lua'
-local kengen = require("kengen-all")
+STARTSCRIPT
+local Kengen = require("Kengen2")
 
-local database = {}
+database = {}
 database["cards"] = {}
 database["cards"][1] = { Name = "Lightning Bolt", CMC = 1 }
 database["cards"][2] = { Name = "Giant Growth", CMC = 1 }
@@ -13,23 +12,14 @@ database["cards"][6] = { Name = "Gray Ogre", CMC = 3 }
 database["cards"][7] = { Name = "Lightning Strike", CMC = 2 }
 database["cards"][8] = { Name = "Control Magic", CMC = 4 }
 
-kengen.fileio.setOutputFile(folderOfThisFile.."./testoutput.txt")
 >// GENERATED, DO NOT MODIFY
 
-print("first line")
-print([[second line with a slash-n (\n) in the middle]])
-print("third line")
 STARTTEMPLATE
-	this is straight output's first line
-	here's the second line with a \n in the middle
-.	print("here's an intermittent line of script")
 .	FOREACH card IN database.cards WHERE card.CMC >=2 BY card.CMC DO
 	$(card.Name) $(card.CMC)
-.	END
-	here's the straight output's third line
+.	ENDFOREACH
 ENDTEMPLATE
-print("back to script mode")
+--back to script mode
 >	here's the rogue line that should be in template mode
-print("last line")
-
-kengen.fileio.closeOutputFile()
+--last line
+ENDSCRIPT

@@ -1,6 +1,7 @@
 LU = require('kengen2.ThirdParty.luaunit.luaunit')
 assert(LU ~= nil)
 
+local Iterator = require("kengen2.Framework.Iterator")
 local Settings = require("kengen2.Framework.Settings")
 
 local Lexer = require("kengen2.Parser.Lexer")
@@ -13,6 +14,17 @@ local MemoryOutputStream = require("kengen2.Execution.MemoryOutputStream")
 local PathUtil = require("kengen2.Util.PathUtil")
 local TestUtil = require("kengen2.Util.TestUtil")
 
+local BasicDatabase = {}
+BasicDatabase["cards"] = {}
+BasicDatabase["cards"][1] = { Name = "Lightning Bolt", CMC = 1 }
+BasicDatabase["cards"][2] = { Name = "Giant Growth", CMC = 1 }
+BasicDatabase["cards"][3] = { Name = "Divination", CMC = 3 }
+BasicDatabase["cards"][4] = { Name = "Grizzly Bears", CMC = 2 }
+BasicDatabase["cards"][5] = { Name = "Hill Giant", CMC = 4 }
+BasicDatabase["cards"][6] = { Name = "Gray Ogre", CMC = 3 }
+BasicDatabase["cards"][7] = { Name = "Lightning Strike", CMC = 2 }
+BasicDatabase["cards"][8] = { Name = "Control Magic", CMC = 4 }
+
 TestClassUtil = {}
 
 function TestClassUtil:TestIsAFailsOnNil()
@@ -21,6 +33,66 @@ function TestClassUtil:TestIsAFailsOnNil()
 		settings:IsA(nil)
 	end
 	LU.assertErrorMsgContains("Passed a nil class to an IsA check", funcToFail)
+end
+
+TestIterator = {}
+
+function TestIterator:TestBasicIterator()
+	local iterator = Iterator:New(BasicDatabase.cards, nil, nil)
+	local n = 1
+	for card in iterator:Make_Iterator() do
+		LU.assertEquals(card.Name, BasicDatabase.cards[n].Name)
+		n = n + 1
+	end
+end
+
+function TestIterator:TestIteratorFiltering()
+	local function SampleFilterFunc(card)
+		return card.CMC > 2
+	end
+
+	local iterator = Iterator:New(BasicDatabase.cards, SampleFilterFunc, nil)
+	local count = 0
+	for card in iterator:Make_Iterator() do
+		LU.assertTrue(card.CMC > 2)
+		count = count + 1
+	end
+	LU.assertEquals(count, 4)
+end
+
+function TestIterator:TestIteratorSorting()
+	local function SampleSortFunc(card1, card2)
+		if card1.CMC < card2.CMC then
+			return true
+		elseif card1.CMC > card2.CMC then
+			return false
+		end
+		return card1.Name < card2.Name
+	end
+
+	local iterator = Iterator:New(BasicDatabase.cards, nil, SampleSortFunc)
+	local index = 0
+	for card in iterator:Make_Iterator() do
+		index = index + 1
+		if index == 1 then
+			LU.assertEquals(card.Name, "Giant Growth")
+		elseif index == 2 then
+			LU.assertEquals(card.Name, "Lightning Bolt")
+		elseif index == 3 then
+			LU.assertEquals(card.Name, "Grizzly Bears")
+		elseif index == 4 then
+			LU.assertEquals(card.Name, "Lightning Strike")
+		elseif index == 5 then
+			LU.assertEquals(card.Name, "Divination")
+		elseif index == 6 then
+			LU.assertEquals(card.Name, "Gray Ogre")
+		elseif index == 7 then
+			LU.assertEquals(card.Name, "Control Magic")
+		elseif index == 8 then
+			LU.assertEquals(card.Name, "Hill Giant")
+		end
+	end
+	LU.assertEquals(index, 8)
 end
 
 TestLexer = {}
@@ -227,13 +299,19 @@ function TestParser:TestParserOnComplex()
 	-- TODO Actually verify the output
 end
 
-function TestParser:TestParserOnCockatrice()
+function TestParser:DISABLED_TestParserOnCockatrice()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	LU.assertTrue(RunningScriptDir ~= nil)
 
-	local Result = Parser.Parser.ParseFile(RunningScriptDir.."/cockatrice-to-mse/main.kengen", Settings:New())
-	LU.assertTrue(Result ~= nil)
-	LU.assertTrue(Result:IsA(ParsedTemplate))
+	local settings = Settings:New()
+	settings.XML_STYLE_ACCESS = true
+	
+	local parsedTemplate = Parser.Parser.ParseFile(RunningScriptDir.."/cockatrice-to-mse/main.kengen", settings)
+	LU.assertTrue(parsedTemplate ~= nil)
+	LU.assertTrue(parsedTemplate:IsA(ParsedTemplate))
+	
+	local resultsStream = MemoryOutputStream:New()
+	parsedTemplate:Execute(resultsStream)
 	
 	-- TODO Actually verify the output
 end
@@ -252,6 +330,23 @@ function TestGenerator:TestGeneratorOnSimple()
 	parsedTemplate:Execute(resultsStream)
 	
 	LU.assertEquals(resultsStream.FinalizedData, "Hello, World\nWelcome to Kengen!\n")
+end
+
+function TestParser:TestGeneratorOnCardsSample()
+	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
+	LU.assertTrue(RunningScriptDir ~= nil)
+
+	local settings = Settings:New()
+	settings.XML_STYLE_ACCESS = false
+	
+	local parsedTemplate = Parser.Parser.ParseFile(RunningScriptDir.."/cockatrice-to-mse/test_cards_sample.kengen", settings)
+	LU.assertTrue(parsedTemplate ~= nil)
+	LU.assertTrue(parsedTemplate:IsA(ParsedTemplate))
+	
+	local resultsStream = MemoryOutputStream:New()
+	parsedTemplate:Execute(resultsStream)
+	
+	-- TODO Actually verify the output
 end
 
 os.exit( LU.LuaUnit.run() )
