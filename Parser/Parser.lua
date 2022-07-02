@@ -145,7 +145,9 @@ function Parser:ParseExecBlock(last)
 end
 
 function Parser:ParseIfBlock(last)
-    assert(not_implemented)
+    local ifNode = self:ParseBookendedBlock(last, TokenTypes.IF, TokenTypes.ENDIF, IfParseNode)
+	
+	return ifNode
 end
 
 function Parser:ParseForeachBlock(last)

@@ -91,11 +91,11 @@ function ForeachParseNode:Execute(executionState)
 	
 	assert(self.VarName ~= nil)
 	
-	GLOBAL_FOREACH_ITERATION_VAR = self.Iterator
-	load(self.VarName.." = GLOBAL_FOREACH_ITERATION_VAR")()
-	
 	local iterator = self.Iterator:Make_Iterator()
-	for _ in iterator do
+	for currentItem in iterator do
+		GLOBAL_FOREACH_ITERATION_VAR = currentItem
+		load(self.VarName.." = GLOBAL_FOREACH_ITERATION_VAR")()
+		
 		executeChildNodes()
 	end
 end
@@ -126,7 +126,7 @@ function ForeachParseNode:PrepareIteration(executionState)
 	end
 	
 	local byFuncLoader = nil
-	if byContents ~= nil then
+	if self.ByContents ~= nil then
 		local comparePhrase1 = self.ByContents:gsub(varName, varName.."1")
 		local comparePhrase2 = self.ByContents:gsub(varName, varName.."2")
 		byFuncLoader = load("return function ("..varName.."1, "..varName.."2) return "..comparePhrase1.." < "..comparePhrase2.." end")

@@ -1,11 +1,12 @@
 STARTSCRIPT
 -- this is a tool for converting cockatrice cards into magic set editor (MSE) cards using the cockatrice card xml database
 
-local Kengen = require("Kengen2")
+Kengen = require("Kengen2")
+StringUtil = require("Kengen2.Util.StringUtil")
 
-local ZIP_FILE_NAME = "temp.zip"
-local MSE_SET_FILE_PATH = "C:\\Users\\User\\Dropbox\\MTG\\eldraine.mse-set"
-local SET_ABBREVIATION = "ELD"
+ZIP_FILE_NAME = "temp.zip"
+MSE_SET_FILE_PATH = "C:\\Users\\User\\Dropbox\\MTG\\eldraine.mse-set"
+SET_ABBREVIATION = "ELD"
 
 local settings = Kengen.Framework.Settings:New()
 cardDatabase = Kengen.LoadXmlFile("C:\\Users\\User\\AppData\\Local\\Cockatrice\\Cockatrice\\cards.xml", settings)
@@ -75,28 +76,34 @@ ENDTEMPLATE
 -- but the way our set information is stored in the Cockatrice database is real weird
 -- e.g. Oko is listed as "271" in the ELD set but "197s" in the PELD set (elsewhere, he's 197 in ELD)
 --FOREACH card IN cardDatabase.cards WHERE card.set[1].InnerText == SET_ABBREVIATION BY card.name:len() DO
-FOREACH card IN cardDatabase.cards BY card.name:len() DO
+
+function IsInSet(card, setAbbreviation)
+	for _, set in ipairs(card.set) do
+		if (set.InnerText:find(setAbbreviation) ~= nil) then
+			return true
+		end
+	end
+	return false
+end
+
+FOREACH card IN cardDatabase.cards.card WHERE IsInSet(card, SET_ABBREVIATION) and not string.find(card.prop.type, "Adventure") BY card.name:len() DO
 
 	rarity = "not_in_set"
-	
-	FOREACH set IN card WHERE (set.InnerText:find(SET_ABBREVIATION) ~= nil) DO
+		
+	FOREACH set IN card.set WHERE (set.InnerText:find(SET_ABBREVIATION) ~= nil) DO
 		rarity = set.rarity
 	ENDFOREACH
-	
-	if rarity == "not_in_set" then
-		goto skip_this_card
-	end
 	
 	if rarity == "mythic" then
 		rarity = "mythic rare"
 	end
 	
-	print (card.name)
-	print ("   index: " .. INDEX(card))
-	print ("   origIndex: " .. ORIGINAL_INDEX (card))
-	print ("   count: " .. COUNT(card))
-	print ("   isFirst: " .. tostring(IS_FIRST(card)))
-	print ("   isLast: " .. tostring( IS_LAST(card)))
+	print(card.name)
+	--print ("   index: " .. INDEX(card))
+	--print ("   origIndex: " .. ORIGINAL_INDEX (card))
+	--print ("   count: " .. COUNT(card))
+	--print ("   isFirst: " .. tostring(IS_FIRST(card)))
+	--print ("   isLast: " .. tostring( IS_LAST(card)))
 	
 	local cost
 	if card.prop.manacost == nil then
@@ -109,19 +116,16 @@ FOREACH card IN cardDatabase.cards BY card.name:len() DO
 	local toughness = nil
 	if card.prop.pt ~= nil then
 		local ptText = card.prop.pt
-		local ptTextSplit = utilities.string_split(ptText, "/")
+		local ptTextSplit = StringUtil.Split(ptText, "/")
 		power = ptTextSplit[1]
 		toughness = ptTextSplit[2]
 	end
 	
 	local cardTypes = card.prop.type
-	if string.find(cardTypes, "Adventure") then
-		goto skip_this_card
-	end
-	local cardTypesSplit = utilities.string_split(cardTypes, "—")
+	local cardTypesSplit = StringUtil.Split(cardTypes, "—")
 	local cardType = cardTypesSplit[1]
 	if cardType ~= nil then
-		cardType = utilities.string_trim(cardType)
+		cardType = StringUtil.Trim(cardType)
 	end
 	local subTypes = cardTypesSplit[2]
 	if subTypes == nil then
@@ -199,16 +203,14 @@ card:
 	rarity: $(rarity)
 	rule text: $(rules)
 	flavor text: <i-flavor></i-flavor>
-.		if power ~= nil and toughness ~= nil then
+.		IF power ~= nil and toughness ~= nil THEN
 	power: $(power)
 	toughness: $(toughness)
-.		end
+.		ENDIF
 	card code text: 
 	copyright: 
 	image 2:
 	ENDTEMPLATE
-	
-	::skip_this_card::
 ENDFOREACH
 
 STARTTEMPLATE
@@ -217,9 +219,7 @@ version control:
 apprentice code: 
 ENDTEMPLATE
 
-CLOSE()
-
-local folderOfThisFile = arg[0]:match("(.-)[^%\\]+$")
+--[[local folderOfThisFile = arg[0]:match("(.-)[^%\\]+$")
 package.path = package.path .. ';'..folderOfThisFile..'\\?.lua'
 
 -- 'set' is not a variable because it's a requirement of MSE that the file in the zip be named 'set'
@@ -232,5 +232,5 @@ os.execute("mv "..ZIP_FILE_NAME.." "..MSE_SET_FILE_PATH)
 print ("Cleaning up old files")
 os.execute("rm "..TEMP_OUTPUT_FILE_NAME)
 os.execute("rm set")
-print ("---DONE !---")
+print ("---DONE !---")]]
 ENDSCRIPT

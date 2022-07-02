@@ -299,7 +299,7 @@ function TestParser:TestParserOnComplex()
 	-- TODO Actually verify the output
 end
 
-function TestParser:DISABLED_TestParserOnCockatrice()
+function TestParser:TestParserOnCockatrice()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	LU.assertTrue(RunningScriptDir ~= nil)
 
@@ -349,4 +349,4 @@ function TestParser:TestGeneratorOnCardsSample()
 	-- TODO Actually verify the output
 end
 
-os.exit( LU.LuaUnit.run() )
+os.exit( LU.LuaUnit.run("TestParser.TestParserOnCockatrice") )
