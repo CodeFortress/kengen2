@@ -112,8 +112,8 @@ FOREACH card IN cardDatabase.cards.card WHERE IsInSet(card, SET_ABBREVIATION) an
 		cost = card.prop.manacost
 	end
 	
-	local power = nil
-	local toughness = nil
+	power = nil
+	toughness = nil
 	if card.prop.pt ~= nil then
 		local ptText = card.prop.pt
 		local ptTextSplit = StringUtil.Split(ptText, "/")

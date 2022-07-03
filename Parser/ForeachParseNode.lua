@@ -7,7 +7,7 @@ local Util = require("kengen2.Util")
 local ForeachParseNode = Util.ClassUtil.CreateClass("ForeachParseNode", ListParseNode)
 
 -- possible preceding . or >, whitespace, FOREACH keyword, whitespace, clause, whitespace, IN keyword, whitespace
-local REGEX_MATCH_FOREACH = "^%.?%s*FOREACH%s+(.*)%s+IN%s+"
+local REGEX_MATCH_FOREACH = "^%s*%.?%s*FOREACH%s+(.*)%s+IN%s+"
 
 -- a regex just to get the correct amount of white space in front of FOREACH for genned code
 local REGEX_MATCH_FOREACH_SPACE = "^(%s*)FOREACH"
