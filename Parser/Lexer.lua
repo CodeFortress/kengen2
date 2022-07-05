@@ -55,19 +55,38 @@ function Lexer.ExtractTokenAndContentFromLine(line, isTemplateMode, easyDirectiv
 	assert(TestUtil.IsBool(easyDirectives))
 	
 	local firstChar = line:sub(1,1)
-	local isTemplateLine = (firstChar ~= ".") and isTemplateMode
-	if not isTemplateLine and (firstChar == ">" or firstChar == ".") then
-		line = line:sub(2) -- Remove preceding > or .
+	
+	-- Explicit template mode ">", even with easyDirectives and a directive, should be treated as a template
+	local isTemplateLine = ((firstChar ~= ".") and isTemplateMode) or (firstChar == ">")
+	
+	local lineNoLeadingCharacter = line
+	if (firstChar == ">" or firstChar == ".") then
+		-- Remove preceding > or ., replace it with a space if there were subsequent spaces
+		lineNoLeadingCharacter = line:sub(2)
+		if (StringUtil.StartsWith(lineNoLeadingCharacter, " ") or StringUtil.StartsWith(lineNoLeadingCharacter, "\t")) then
+			lineNoLeadingCharacter = " "..lineNoLeadingCharacter
+		end
 	end
 	
-	local trimmed = StringUtil.Trim(line)
-	local firstCharPostWhitespace = trimmed:sub(1,1)
-	if not isTemplateLine and (firstCharPostWhitespace == ">" or firstCharPostWhitespace == ".") then
-		trimmed = trimmed:sub(2) -- Remove preceding > or .
+	local lineTrimmedContents = StringUtil.Trim(lineNoLeadingCharacter)
+	local firstCharPostWhitespace = lineTrimmedContents:sub(1,1)
+	if (firstCharPostWhitespace == ">") then
+		isTemplateLine = true
 	end
 	
-	local firstSpace = trimmed:find(" ")
-	local firstWord = (firstSpace and trimmed:sub(1, firstSpace-1)) or trimmed
+	if ((not isTemplateLine) and firstCharPostWhitespace == ".") then
+		-- Remove preceding > or .
+		lineTrimmedContents = lineTrimmedContents:sub(2)
+	elseif (isTemplateLine and (firstCharPostWhitespace == ">")) then
+		-- Remove preceding >, replace it with a space if there were subsequent spaces
+		lineTrimmedContents = lineTrimmedContents:sub(2)
+		if (StringUtil.StartsWith(lineTrimmedContents, " ")) then
+			lineTrimmedContents = " "..lineTrimmedContents
+		end
+	end
+	
+	local firstSpaceIndex = lineTrimmedContents:find(" ")
+	local firstWord = (firstSpaceIndex and lineTrimmedContents:sub(1, firstSpaceIndex-1)) or lineTrimmedContents
 	
 	local tokenType = TokenTypes[firstWord]
 	if isTemplateLine and not easyDirectives then
@@ -75,6 +94,7 @@ function Lexer.ExtractTokenAndContentFromLine(line, isTemplateMode, easyDirectiv
 	elseif tokenType ~= nil then
 		-- no action, it's already been set correctly
 	elseif firstChar == ">" or firstCharPostWhitespace == ">" then
+		isTemplateLine = true
 		tokenType = TokenTypes.TemplateLine
 	elseif firstChar == "." or firstCharPostWhitespace == "." then
 		tokenType = TokenTypes.ScriptLine
@@ -82,7 +102,13 @@ function Lexer.ExtractTokenAndContentFromLine(line, isTemplateMode, easyDirectiv
 		tokenType = (isTemplateMode and TokenTypes.TemplateLine) or TokenTypes.ScriptLine
 	end
 	
-	return tokenType, trimmed
+	local contentsToReturn = lineTrimmedContents
+	if isTemplateLine then
+		-- Don't want newlines, we add those manually
+		contentsToReturn = StringUtil.TrimEnd(lineNoLeadingCharacter)
+	end
+	
+	return tokenType, contentsToReturn
 end
 
 -- returns a triplet of <stringsByLine, cleanStringsByLine, tokens>

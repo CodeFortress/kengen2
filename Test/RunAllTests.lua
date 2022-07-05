@@ -12,6 +12,7 @@ local FileOutputStream = require("kengen2.Execution.FileOutputStream")
 local MemoryOutputStream = require("kengen2.Execution.MemoryOutputStream")
 
 local PathUtil = require("kengen2.Util.PathUtil")
+local StringUtil = require("kengen2.Util.StringUtil")
 local TestUtil = require("kengen2.Util.TestUtil")
 
 local BasicDatabase = {}
@@ -33,6 +34,152 @@ function TestClassUtil:TestIsAFailsOnNil()
 		settings:IsA(nil)
 	end
 	LU.assertErrorMsgContains("Passed a nil class to an IsA check", funcToFail)
+end
+
+TestStringUtil = {}
+
+function TestStringUtil:TestTrim()
+	LU.assertEquals(StringUtil.Trim(""), "")
+	LU.assertEquals(StringUtil.Trim(" "), "")
+	LU.assertEquals(StringUtil.Trim("	"), "")
+	LU.assertEquals(StringUtil.Trim("  "), "")
+	
+	-- content in middle with spaces or tabs on outside
+	LU.assertEquals(StringUtil.Trim(" a"), "a")
+	LU.assertEquals(StringUtil.Trim("a "), "a")
+	LU.assertEquals(StringUtil.Trim("a  "), "a")
+	LU.assertEquals(StringUtil.Trim("  a"), "a")
+	LU.assertEquals(StringUtil.Trim(" a "), "a")
+	LU.assertEquals(StringUtil.Trim("	a"), "a")
+	LU.assertEquals(StringUtil.Trim("a	"), "a")
+	LU.assertEquals(StringUtil.Trim("	a	"), "a")
+	
+	-- spaces in middle
+	LU.assertEquals(StringUtil.Trim(" a b"), "a b")
+	LU.assertEquals(StringUtil.Trim("a b "), "a b")
+	LU.assertEquals(StringUtil.Trim("a b  "), "a b")
+	LU.assertEquals(StringUtil.Trim("  a b"), "a b")
+	LU.assertEquals(StringUtil.Trim(" a b "), "a b")
+	LU.assertEquals(StringUtil.Trim("	a b"), "a b")
+	LU.assertEquals(StringUtil.Trim("a b	"), "a b")
+	LU.assertEquals(StringUtil.Trim("	a b	"), "a b")
+	
+	-- tabs in middle (a tab b)
+	LU.assertEquals(StringUtil.Trim(" a	b"), "a	b")
+	LU.assertEquals(StringUtil.Trim("a	b "), "a	b")
+	LU.assertEquals(StringUtil.Trim("a	b  "), "a	b")
+	LU.assertEquals(StringUtil.Trim("  a	b"), "a	b")
+	LU.assertEquals(StringUtil.Trim(" a	b "), "a	b")
+	LU.assertEquals(StringUtil.Trim("	a	b"), "a	b")
+	LU.assertEquals(StringUtil.Trim("a	b	"), "a	b")
+	LU.assertEquals(StringUtil.Trim("	a	b	"), "a	b")
+	
+	-- newlines
+	LU.assertEquals(StringUtil.Trim("\na	b"), "a	b")
+	LU.assertEquals(StringUtil.Trim("\r\na	b"), "a	b")
+	LU.assertEquals(StringUtil.Trim("a	b\n"), "a	b")
+	LU.assertEquals(StringUtil.Trim("a	b\r\n"), "a	b")
+	LU.assertEquals(StringUtil.Trim("\na	b"), "a	b")
+	LU.assertEquals(StringUtil.Trim("\na	b\n"), "a	b")
+	LU.assertEquals(StringUtil.Trim("\na	b\r"), "a	b")
+	LU.assertEquals(StringUtil.Trim("a	b\n"), "a	b")
+	LU.assertEquals(StringUtil.Trim("\na	b\n"), "a	b")
+end
+
+function TestStringUtil:TestTrimStart()
+	LU.assertEquals(StringUtil.TrimStart(""), "")
+	LU.assertEquals(StringUtil.TrimStart(" "), "")
+	LU.assertEquals(StringUtil.TrimStart("	"), "")
+	LU.assertEquals(StringUtil.TrimStart("  "), "")
+	
+	-- content in middle with spaces or tabs on outside
+	LU.assertEquals(StringUtil.TrimStart(" a"), "a")
+	LU.assertEquals(StringUtil.TrimStart("a "), "a ")
+	LU.assertEquals(StringUtil.TrimStart("a  "), "a  ")
+	LU.assertEquals(StringUtil.TrimStart("  a"), "a")
+	LU.assertEquals(StringUtil.TrimStart(" a "), "a ")
+	LU.assertEquals(StringUtil.TrimStart("	a"), "a")
+	LU.assertEquals(StringUtil.TrimStart("a	"), "a	")
+	LU.assertEquals(StringUtil.TrimStart("	a	"), "a	")
+	
+	-- spaces in middle
+	LU.assertEquals(StringUtil.TrimStart(" a b"), "a b")
+	LU.assertEquals(StringUtil.TrimStart("a b "), "a b ")
+	LU.assertEquals(StringUtil.TrimStart("a b  "), "a b  ")
+	LU.assertEquals(StringUtil.TrimStart("  a b"), "a b")
+	LU.assertEquals(StringUtil.TrimStart(" a b "), "a b ")
+	LU.assertEquals(StringUtil.TrimStart("	a b"), "a b")
+	LU.assertEquals(StringUtil.TrimStart("a b	"), "a b	")
+	LU.assertEquals(StringUtil.TrimStart("	a b	"), "a b	")
+	
+	-- tabs in middle (a tab b)
+	LU.assertEquals(StringUtil.TrimStart(" a	b"), "a	b")
+	LU.assertEquals(StringUtil.TrimStart("a	b "), "a	b ")
+	LU.assertEquals(StringUtil.TrimStart("a	b  "), "a	b  ")
+	LU.assertEquals(StringUtil.TrimStart("  a	b"), "a	b")
+	LU.assertEquals(StringUtil.TrimStart(" a	b "), "a	b ")
+	LU.assertEquals(StringUtil.TrimStart("	a	b"), "a	b")
+	LU.assertEquals(StringUtil.TrimStart("a	b	"), "a	b	")
+	LU.assertEquals(StringUtil.TrimStart("	a	b	"), "a	b	")
+	
+	-- newlines
+	LU.assertEquals(StringUtil.TrimStart("\na	b"), "a	b")
+	LU.assertEquals(StringUtil.TrimStart("\r\na	b"), "a	b")
+	LU.assertEquals(StringUtil.TrimStart("a	b\n"), "a	b\n")
+	LU.assertEquals(StringUtil.TrimStart("a	b\r\n"), "a	b\r\n")
+	LU.assertEquals(StringUtil.TrimStart("\na	b"), "a	b")
+	LU.assertEquals(StringUtil.TrimStart("\na	b\n"), "a	b\n")
+	LU.assertEquals(StringUtil.TrimStart("\na	b\r"), "a	b\r")
+	LU.assertEquals(StringUtil.TrimStart("a	b\n"), "a	b\n")
+	LU.assertEquals(StringUtil.TrimStart("\na	b\n"), "a	b\n")
+end
+
+function TestStringUtil:TestTrimEnd()
+	LU.assertEquals(StringUtil.TrimEnd(""), "")
+	LU.assertEquals(StringUtil.TrimEnd(" "), "")
+	LU.assertEquals(StringUtil.TrimEnd("	"), "")
+	LU.assertEquals(StringUtil.TrimEnd("  "), "")
+	
+	-- content in middle with spaces or tabs on outside
+	LU.assertEquals(StringUtil.TrimEnd(" a"), " a")
+	LU.assertEquals(StringUtil.TrimEnd("a "), "a")
+	LU.assertEquals(StringUtil.TrimEnd("a  "), "a")
+	LU.assertEquals(StringUtil.TrimEnd("  a"), "  a")
+	LU.assertEquals(StringUtil.TrimEnd(" a "), " a")
+	LU.assertEquals(StringUtil.TrimEnd("	a"), "	a")
+	LU.assertEquals(StringUtil.TrimEnd("a	"), "a")
+	LU.assertEquals(StringUtil.TrimEnd("	a	"), "	a")
+	
+	-- spaces in middle
+	LU.assertEquals(StringUtil.TrimEnd(" a b"), " a b")
+	LU.assertEquals(StringUtil.TrimEnd("a b "), "a b")
+	LU.assertEquals(StringUtil.TrimEnd("a b  "), "a b")
+	LU.assertEquals(StringUtil.TrimEnd("  a b"), "  a b")
+	LU.assertEquals(StringUtil.TrimEnd(" a b "), " a b")
+	LU.assertEquals(StringUtil.TrimEnd("	a b"), "	a b")
+	LU.assertEquals(StringUtil.TrimEnd("a b	"), "a b")
+	LU.assertEquals(StringUtil.TrimEnd("	a b	"), "	a b")
+	
+	-- tabs in middle (a tab b)
+	LU.assertEquals(StringUtil.TrimEnd(" a	b"), " a	b")
+	LU.assertEquals(StringUtil.TrimEnd("a	b "), "a	b")
+	LU.assertEquals(StringUtil.TrimEnd("a	b  "), "a	b")
+	LU.assertEquals(StringUtil.TrimEnd("  a	b"), "  a	b")
+	LU.assertEquals(StringUtil.TrimEnd(" a	b "), " a	b")
+	LU.assertEquals(StringUtil.TrimEnd("	a	b"), "	a	b")
+	LU.assertEquals(StringUtil.TrimEnd("a	b	"), "a	b")
+	LU.assertEquals(StringUtil.TrimEnd("	a	b	"), "	a	b")
+	
+	-- newlines
+	LU.assertEquals(StringUtil.TrimEnd("\na	b"), "\na	b")
+	LU.assertEquals(StringUtil.TrimEnd("\r\na	b"), "\r\na	b")
+	LU.assertEquals(StringUtil.TrimEnd("a	b\n"), "a	b")
+	LU.assertEquals(StringUtil.TrimEnd("a	b\r\n"), "a	b")
+	LU.assertEquals(StringUtil.TrimEnd("\na	b"), "\na	b")
+	LU.assertEquals(StringUtil.TrimEnd("\na	b\n"), "\na	b")
+	LU.assertEquals(StringUtil.TrimEnd("\na	b\r"), "\na	b")
+	LU.assertEquals(StringUtil.TrimEnd("a	b\n"), "a	b")
+	LU.assertEquals(StringUtil.TrimEnd("\na	b\n"), "\na	b")
 end
 
 TestIterator = {}
@@ -117,6 +264,11 @@ function TestLexer:TestLexerExtractTokenFromLine()
 	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTSCRIPT", true, false), Parser.TokenTypes.STARTSCRIPT)
 	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTSCRIPT", true, true), Parser.TokenTypes.STARTSCRIPT)
 	
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    STARTSCRIPT", false, false), Parser.TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    STARTSCRIPT", false, true), Parser.TokenTypes.STARTSCRIPT)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    STARTSCRIPT", true, false), Parser.TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    STARTSCRIPT", true, true), Parser.TokenTypes.STARTSCRIPT)
+	
 	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTTEMPLATE", false, false), Parser.TokenTypes.STARTTEMPLATE)
 	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTTEMPLATE", false, true), Parser.TokenTypes.STARTTEMPLATE)
 	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTTEMPLATE", true, false), Parser.TokenTypes.TemplateLine)
@@ -146,6 +298,26 @@ function TestLexer:TestLexerExtractTokenFromLine()
 	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    FOREACH foo IN bar DO", false, true), Parser.TokenTypes.FOREACH)
 	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    FOREACH foo IN bar DO", true, false), Parser.TokenTypes.FOREACH)
 	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    FOREACH foo IN bar DO", true, true), Parser.TokenTypes.FOREACH)
+	
+	LU.assertEquals(Lexer.ExtractTokenFromLine("local foo = true", false, false), Parser.TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("local foo = true", false, true), Parser.TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("local foo = true", true, false), Parser.TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("local foo = true", true, true), Parser.TokenTypes.TemplateLine)
+	
+	LU.assertEquals(Lexer.ExtractTokenFromLine("		local foo = true", false, false), Parser.TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("		local foo = true", false, true), Parser.TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("		local foo = true", true, false), Parser.TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("		local foo = true", true, true), Parser.TokenTypes.TemplateLine)
+	
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    local foo = true", false, false), Parser.TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    local foo = true", false, true), Parser.TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    local foo = true", true, false), Parser.TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    local foo = true", true, true), Parser.TokenTypes.TemplateLine)
+	
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    local foo = true", false, false), Parser.TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    local foo = true", false, true), Parser.TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    local foo = true", true, false), Parser.TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    local foo = true", true, true), Parser.TokenTypes.ScriptLine)
 end
 
 function TestLexer:TestLexerExtractContentFromLine()
@@ -168,6 +340,11 @@ function TestLexer:TestLexerExtractContentFromLine()
 	LU.assertEquals(Lexer.ExtractContentFromLine(".	    STARTSCRIPT", false, true), "STARTSCRIPT")
 	LU.assertEquals(Lexer.ExtractContentFromLine(".	    STARTSCRIPT", true, false), "STARTSCRIPT")
 	LU.assertEquals(Lexer.ExtractContentFromLine(".	    STARTSCRIPT", true, true), "STARTSCRIPT")
+	
+	LU.assertEquals(Lexer.ExtractContentFromLine(">	    STARTSCRIPT", false, false), " 	    STARTSCRIPT")
+	LU.assertEquals(Lexer.ExtractContentFromLine(">	    STARTSCRIPT", false, true), " 	    STARTSCRIPT")
+	LU.assertEquals(Lexer.ExtractContentFromLine(">	    STARTSCRIPT", true, false), " 	    STARTSCRIPT")
+	LU.assertEquals(Lexer.ExtractContentFromLine(">	    STARTSCRIPT", true, true), " 	    STARTSCRIPT")
 	
 	LU.assertEquals(Lexer.ExtractContentFromLine("FOREACH foo IN bar DO", false, false), "FOREACH foo IN bar DO")
 	LU.assertEquals(Lexer.ExtractContentFromLine("FOREACH foo IN bar DO", false, true), "FOREACH foo IN bar DO")
@@ -299,7 +476,7 @@ function TestParser:TestParserOnComplex()
 	-- TODO Actually verify the output
 end
 
-function TestParser:TestParserOnCockatrice()
+function TestParser:DISABLED_TestParserOnCockatrice()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	LU.assertTrue(RunningScriptDir ~= nil)
 
@@ -349,4 +526,4 @@ function TestParser:TestGeneratorOnCardsSample()
 	-- TODO Actually verify the output
 end
 
-os.exit( LU.LuaUnit.run("TestParser.TestParserOnCockatrice") )
+os.exit( LU.LuaUnit.run() )

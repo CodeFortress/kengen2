@@ -28,6 +28,16 @@ function StringUtil.Trim(string)
     return string:match'^%s*(.*%S)' or ''
 end
 
+-- Returns a version of the string without whitespace at front
+function StringUtil.TrimStart(string)
+    return string:match'^%s*(.*)' or ''
+end
+
+-- Returns a version of the string without whitespace at back
+function StringUtil.TrimEnd(string)
+    return string:match'^(.*%S)' or ''
+end
+
 -- Returns whether the string starts with a particular substring
 -- From http://lua-users.org/wiki/StringRecipes
 function StringUtil.StartsWith(str, start)
