@@ -18,7 +18,7 @@ function ScriptChunkParseNode:Execute(executionState)
 	end
 	
 	local fullChunk = table.concat(scriptLines, "\n")
-	local chunkFunc, err = load(fullChunk)
+	local chunkFunc, err = executionState:LoadLua(fullChunk, self.StartPos, self.EndPos)
 	if chunkFunc ~= nil then
 		chunkFunc()
 	else

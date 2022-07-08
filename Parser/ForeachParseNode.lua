@@ -26,7 +26,7 @@ function ForeachParseNode:New(nodesList)
     -- parent class will validate the nodesList
 
     local instance = ForeachParseNode.SuperClass().New(self, nodesList)
-	instance.ForeachLine = instance.StartPos - 1
+	instance.ForeachLineNum = instance.StartPos - 1
     return instance
 end
 
@@ -36,13 +36,13 @@ function ForeachParseNode:Preprocess(preprocessState)
 	
 	self.SuperClass().Preprocess(self, preprocessState)
 	
-	local line = preprocessState:GetRawLine(self.ForeachLine)
+	local line = preprocessState:GetRawLine(self.ForeachLineNum)
 	
 	local foreachContents = line:match(REGEX_MATCH_FOREACH)
 	assert(foreachContents ~= nil,
-		preprocessState:MakeError(self.ForeachLine, "Malformed FOREACH, could not identify what's between FOREACH and IN"))
+		preprocessState:MakeError(self.ForeachLineNum, "Malformed FOREACH, could not identify what's between FOREACH and IN"))
 	assert(line:find(REGEX_MATCH_SUFFIX_DO) ~= nil,
-		preprocessState:MakeError(self.ForeachLine, "FOREACH loop without a DO on the same line; this is not supported yet"))
+		preprocessState:MakeError(self.ForeachLineNum, "FOREACH loop without a DO on the same line; this is not supported yet"))
 	
 	local inContents = line:match(REGEX_MATCH_IN..REGEX_MATCH_SUFFIX_AS)
 	if inContents == nil then
@@ -55,7 +55,7 @@ function ForeachParseNode:Preprocess(preprocessState)
 		inContents = line:match(REGEX_MATCH_IN..REGEX_MATCH_SUFFIX_DO)
 	end
 	assert(inContents ~= nil,
-		preprocessState:MakeError(self.ForeachLine, "Malformed FOREACH, does not have a valid IN clause"))
+		preprocessState:MakeError(self.ForeachLineNum, "Malformed FOREACH, does not have a valid IN clause"))
 	
 	local asContents = line:match(REGEX_MATCH_AS..REGEX_MATCH_SUFFIX_WHERE)
 	if asContents == nil then
@@ -93,8 +93,9 @@ function ForeachParseNode:Execute(executionState)
 	
 	local iterator = self.Iterator:Make_Iterator()
 	for currentItem in iterator do
-		GLOBAL_FOREACH_ITERATION_VAR = currentItem
-		load(self.VarName.." = GLOBAL_FOREACH_ITERATION_VAR")()
+		--GLOBAL_FOREACH_ITERATION_VAR = currentItem
+		executionState:SetVar(self.VarName, currentItem)
+		--executionState:LoadLua(self.VarName.." = GLOBAL_FOREACH_ITERATION_VAR")()
 		
 		executeChildNodes()
 	end
@@ -107,29 +108,31 @@ function ForeachParseNode:PrepareIteration(executionState)
 	local varName
 	local foreachFuncLoader
 	if asContents ~= nil then
-		assert(executionState.Settings.ACCESS_STYLE_XML, "Line #"..tostring(lineNum).." of ".._filePath.." -- The 'AS' clause is only supported in XML style")
+		assert(executionState.Settings.ACCESS_STYLE_XML, "Line #"..tostring(self.ForeachLineNum).." of ".._filePath.." -- The 'AS' clause is only supported in XML style")
 		varName = self.AsContents
-		foreachFuncLoader = load("return "..self.InContents.."."..self.ForeachContents)
+		foreachFuncLoader = executionState:LoadLua("return "..self.InContents.."."..self.ForeachContents, self.ForeachLineNum)
 	elseif executionState.Settings.ACCESS_STYLE_XML then
 		varName = self.ForeachContents
-		foreachFuncLoader = load("return "..self.InContents.."."..self.ForeachContents)
+		foreachFuncLoader = executionState:LoadLua("return "..self.InContents.."."..self.ForeachContents, self.ForeachLineNum)
 	else
 		varName = self.ForeachContents
-		foreachFuncLoader = load("return "..self.InContents)
+		foreachFuncLoader = executionState:LoadLua("return "..self.InContents, self.ForeachLineNum)
 	end
 	assert(varName ~= nil and varName:len() > 0,
-		executionState:MakeError(self.ForeachLine, "Malformed FOREACH, got an empty var name"))
+		executionState:MakeError(self.ForeachLineNum, "Malformed FOREACH, got an empty var name"))
 	
 	local whereFuncLoader = nil
 	if self.WhereContents ~= nil then
-		whereFuncLoader = load("return function ("..varName..") return "..self.WhereContents.." end")
+		whereFuncLoader = executionState:LoadLua("return function ("..varName..") return "..self.WhereContents.." end", self.ForeachLineNum)
 	end
 	
 	local byFuncLoader = nil
 	if self.ByContents ~= nil then
 		local comparePhrase1 = self.ByContents:gsub(varName, varName.."1")
 		local comparePhrase2 = self.ByContents:gsub(varName, varName.."2")
-		byFuncLoader = load("return function ("..varName.."1, "..varName.."2) return "..comparePhrase1.." < "..comparePhrase2.." end")
+		executionState:LoadLua(
+			"return function ("..varName.."1, "..varName.."2) return "..comparePhrase1.." < "..comparePhrase2.." end",
+			self.ForeachLineNum)
 	end
 	
 	local foreachFunc = foreachFuncLoader()

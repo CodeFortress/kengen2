@@ -490,6 +490,8 @@ function TestParser:DISABLED_TestParserOnCockatrice()
 	local resultsStream = MemoryOutputStream:New()
 	parsedTemplate:Execute(resultsStream)
 	
+	print(resultsStream.FinalizedData)
+	
 	-- TODO Actually verify the output
 end
 

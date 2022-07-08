@@ -98,7 +98,7 @@ FOREACH card IN cardDatabase.cards.card WHERE IsInSet(card, SET_ABBREVIATION) an
 		rarity = "mythic rare"
 	end
 	
-	print(card.name)
+	--print(card.name)
 	--print ("   index: " .. INDEX(card))
 	--print ("   origIndex: " .. ORIGINAL_INDEX (card))
 	--print ("   count: " .. COUNT(card))

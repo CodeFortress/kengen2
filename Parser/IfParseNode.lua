@@ -13,6 +13,7 @@ function IfParseNode:New(nodesList)
 
     local instance = IfParseNode.SuperClass().New(self, nodesList)
 	instance.IfLine = instance.StartPos - 1
+	instance.IfContents = nil
 	instance.IfFunc = nil
     return instance
 end
@@ -25,19 +26,19 @@ function IfParseNode:Preprocess(preprocessState)
 	
 	local line = preprocessState:GetRawLine(self.IfLine)
 	
-	local ifContents = line:match(REGEX_MATCH_IF)
-	assert(ifContents ~= nil,
+	self.IfContents = line:match(REGEX_MATCH_IF)
+	assert(self.IfContents ~= nil,
 		preprocessState:MakeError(self.IfLine, "Malformed IF...THEN, could not identify what's between IF and THEN"))
-	
-	self.IfFunc, err = load("return "..ifContents)
-	assert(self.IfFunc ~= nil,
-		preprocessState:MakeError(self.IfLine, "Failed to load '"..ifContents.."' into a function due to error: "..tostring(err)))
 end
 
 function IfParseNode:Execute(executionState)
 	assert(Util.TestUtil.IsTable(self) and self:IsA(IfParseNode))
 	assert(Util.TestUtil.IsTable(executionState) and executionState:IsA(ExecutionState))
-		
+	
+	self.IfFunc, err = executionState:LoadLua("return "..self.IfContents, self.IfLine)
+	assert(self.IfFunc ~= nil,
+		executionState:MakeError(self.IfLine, "Failed to load '"..self.IfContents.."' into a function due to error: "..tostring(err)))
+	
 	if self.IfFunc() then
 		IfParseNode.SuperClass().Execute(self, executionState)
 	-- TODO: elseif / else
