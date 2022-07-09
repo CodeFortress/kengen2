@@ -63,7 +63,7 @@ function Parser:Advance(cursor)
     return self.File.TokensByLine[cursor].EndPos + 1
 end
 
--- Returns the actual Token object being looked at
+-- Returns the actual Token object located at the cursor position
 function Parser:CurToken(cursor)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
 	self:ValidateCursor(cursor)
@@ -71,7 +71,7 @@ function Parser:CurToken(cursor)
     return self.File.TokensByLine[cursor]
 end
 
--- Returns the Token object's type as string
+-- Returns the Token object's type as string for the token located at the cursor position
 function Parser:CurTokenString(cursor)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
 	self:ValidateCursor(cursor)
@@ -90,6 +90,7 @@ function Parser:ParseProgram()
     return ParsedTemplate:New(self.File, ListNode)
 end
 
+-- Parses a block starting at cursor position; returns a new cursor position and a node
 function Parser:ParseBlock(cursor)
 	self:ValidateCursor(cursor)
 	
@@ -100,6 +101,7 @@ function Parser:ParseBlock(cursor)
     end
 end
 
+-- Parses a bookended block starting at cursor position; returns a new cursor position and a node
 -- Bookended chunk means a chunk that has a specific start and end symbol
 function Parser:ParseBookendedBlock(cursor, last, openingSymbol, closingSymbol, nodeClass)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
@@ -118,6 +120,7 @@ function Parser:ParseBookendedBlock(cursor, last, openingSymbol, closingSymbol, 
     return cursor, result
 end
 
+-- Parses a function block starting at cursor position; returns a new cursor position and a node
 function Parser:ParseFuncBlock(cursor)
 	self:ValidateCursor(cursor)
 	
@@ -125,6 +128,7 @@ function Parser:ParseFuncBlock(cursor)
     return self:ParseBookendedBlock(cursor, last, TokenTypes.STARTFUNCTION, TokenTypes.ENDFUNCTION, FuncParseNode)
 end
 
+-- Parses a list of executable nodes starting at cursor position; returns a new cursor position and a list of nodes
 function Parser:ParseExecChain(cursor, last)
 	self:ValidateCursor(cursor)
 	assert(Util.TestUtil.IsNumber(last))
@@ -136,6 +140,7 @@ function Parser:ParseExecChain(cursor, last)
     return cursor, nodesList
 end
 
+-- Parses an executable block starting at cursor position; returns a new cursor position and a node
 function Parser:ParseExecBlock(cursor, last)
 	self:ValidateCursor(cursor)
 	assert(last == nil or Util.TestUtil.IsNumber(last))
@@ -166,6 +171,7 @@ function Parser:ParseExecBlock(cursor, last)
     assert(false, "Unexpected symbol for starting an exec block: "..self:CurTokenString(cursor))
 end
 
+-- Parses an IF block starting at cursor position; returns a new cursor position and a node
 function Parser:ParseIfBlock(cursor, last)
 	self:ValidateCursor(cursor)
 	assert(Util.TestUtil.IsNumber(last))
@@ -175,24 +181,28 @@ function Parser:ParseIfBlock(cursor, last)
 	return cursor, ifNode
 end
 
+-- Parses a FOREACH block starting at cursor position; returns a new cursor position and a node
 function Parser:ParseForeachBlock(cursor, last)
 	self:ValidateCursor(cursor)
 	assert(Util.TestUtil.IsNumber(last))
     return self:ParseBookendedBlock(cursor, last, TokenTypes.FOREACH, TokenTypes.ENDFOREACH, ForeachParseNode)
 end
 
+-- Parses a STARTSCRIPT block starting at cursor position; returns a new cursor position and a node
 function Parser:ParseStartScriptBlock(cursor, last)
 	self:ValidateCursor(cursor)
 	assert(Util.TestUtil.IsNumber(last))
     return self:ParseBookendedBlock(cursor, last, TokenTypes.STARTSCRIPT, TokenTypes.ENDSCRIPT, StartScriptParseNode)
 end
 
+-- Parses a STARTTEMPLATE block starting at cursor position; returns a new cursor position and a node
 function Parser:ParseStartTemplateBlock(cursor, last)
 	self:ValidateCursor(cursor)
 	assert(Util.TestUtil.IsNumber(last))
     return self:ParseBookendedBlock(cursor, last, TokenTypes.STARTTEMPLATE, TokenTypes.ENDTEMPLATE, StartTemplateParseNode)
 end
 
+-- Parses a chunk starting at cursor position; returns a new cursor position and a node
 -- Basic chunk just means a sequence of the same symbol of any count
 function Parser:ParseBasicChunk(cursor, last, symbol, nodeClass)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
@@ -212,18 +222,21 @@ function Parser:ParseBasicChunk(cursor, last, symbol, nodeClass)
     return cursor, nodeClass:New(startPos, endPos)
 end
 
+-- Parses a script chunk starting at cursor position; returns a new cursor position and a node
 function Parser:ParseScriptChunk(cursor, last)
 	self:ValidateCursor(cursor)
 	assert(Util.TestUtil.IsNumber(last))
     return self:ParseBasicChunk(cursor, last, TokenTypes.ScriptLine, ScriptChunkParseNode)
 end
 
+-- Parses a template chunk at cursor position; returns a new cursor position and a node
 function Parser:ParseTemplateChunk(cursor, last)
 	self:ValidateCursor(cursor)
 	assert(Util.TestUtil.IsNumber(last))
     return self:ParseBasicChunk(cursor, last, TokenTypes.TemplateLine, TemplateChunkParseNode)
 end
 
+-- Returns a string representing the parser's file and provided cursor position
 function Parser:ToString(cursor)
 	self:ValidateCursor(cursor)
     return self.File.Path..":"..tostring(cursor)
