@@ -1,0 +1,70 @@
+.STARTSCRIPT
+results = ""
+IF true THEN
+	results = results.."1"
+ENDIF
+
+IF not true THEN
+	results = results.."Fail"
+ENDIF
+
+IF true THEN
+	results = results.."2"
+ELSE
+	results = results.."Fail"
+ENDIF
+
+IF not true THEN
+	results = results.."Fail"
+ELSE
+	results = results.."3"
+ENDIF
+
+IF true THEN
+	results = results.."4"
+ELSEIF true THEN
+	results = results.."Fail"
+ELSE
+	results = results.."Fail"
+ENDIF
+
+IF false THEN
+	results = results.."Fail"
+ELSEIF true THEN
+	results = results.."5"
+ELSE
+	results = results.."Fail"
+ENDIF
+
+IF not true THEN
+	results = results.."Fail"
+ELSEIF true THEN
+	results = results.."6"
+ENDIF
+
+IF true THEN
+	results = results.."7"
+ELSEIF true THEN
+	results = results.."Fail"
+ENDIF
+
+IF false THEN
+	results = results.."Fail"
+ELSEIF false THEN
+	results = results.."Fail"
+ENDIF
+
+IF false THEN
+	results = results.."Fail"
+ELSEIF false THEN
+	results = results.."Fail"
+ELSEIF false THEN
+	results = results.."Fail"
+ELSEIF false THEN
+	results = results.."Fail"
+ELSE
+	results = results.."8"
+ENDIF
+
+>results
+.ENDSCRIPT

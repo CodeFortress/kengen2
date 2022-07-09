@@ -7,14 +7,22 @@ local REGEX_MATCH_IF = "^%s*%.?%s*IF%s+(.*)%s+THEN%s*$"
 
 local IfParseNode = Util.ClassUtil.CreateClass("IfParseNode", ListParseNode)
 
-function IfParseNode:New(nodesList)
+function IfParseNode:New(nodesList, elseifList, elseNode)
     assert(Util.TestUtil.IsTable(self) and self:IsA(IfParseNode))
     -- parent class will validate the nodesList
+	assert(Util.TestUtil.IsTable(elseifList))
+	for _, elseifNode in ipairs(elseifList) do
+		assert(Util.TestUtil.IsTable(elseifNode))
+		assert(Util.TestUtil.IsTable(elseifNode) and elseifNode:IsA(ElseIfParseNode))
+	end
+	assert(elseNode == nil or (Util.TestUtil.IsTable(elseNode) and elseNode:IsA(ListParseNode)))
 
     local instance = IfParseNode.SuperClass().New(self, nodesList)
 	instance.IfLine = instance.StartPos - 1
 	instance.IfContents = nil
 	instance.IfFunc = nil
+	instance.ElseIfList = elseifList
+	instance.ElseNode = elseNode
     return instance
 end
 
@@ -41,7 +49,20 @@ function IfParseNode:Execute(executionState)
 	
 	if self.IfFunc() then
 		IfParseNode.SuperClass().Execute(self, executionState)
-	-- TODO: elseif / else
+	else
+		local found = false
+		for _, elseifNode in ipairs(self.ElseIfList) do
+			if elseifNode.IfFunc() then
+				found = true
+				ElseIfParseNode.Execute(elseifNode, executionState)
+				break
+			end
+		end
+		if not found then
+			if self.ElseNode then
+				ListParseNode.Execute(self.ElseNode, executionState)
+			end
+		end
 	end
 end
 
