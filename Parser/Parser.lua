@@ -114,8 +114,9 @@ function Parser:ParseBookendedBlock(cursor, last, openingSymbol, closingSymbol, 
     assert(Util.TestUtil.IsTable(nodeClass))
     assert(self:Peek(cursor) == openingSymbol)
 
-    local last = self:FindClosingSymbol(cursor, openingSymbol, closingSymbol, true)
-    local cursor, chain = self:ParseExecChain(cursor + 1, last-1)
+    last = self:FindClosingSymbol(cursor, openingSymbol, closingSymbol, true)
+	local chain = nil
+    cursor, chain = self:ParseExecChain(cursor + 1, last-1)
     assert(chain ~= nil, "Failed to parse "..tostring(TokenTypes.ToString[openingSymbol]).." block")
     local result = nodeClass:New(chain)
     cursor = self:Advance(cursor) -- skip over the end token!
