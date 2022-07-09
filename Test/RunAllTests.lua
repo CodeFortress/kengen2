@@ -26,9 +26,9 @@ BasicDatabase["cards"][6] = { Name = "Gray Ogre", CMC = 3 }
 BasicDatabase["cards"][7] = { Name = "Lightning Strike", CMC = 2 }
 BasicDatabase["cards"][8] = { Name = "Control Magic", CMC = 4 }
 
-TestClassUtil = {}
+Test_ClassUtil = {}
 
-function TestClassUtil:TestIsAFailsOnNil()
+function Test_ClassUtil:Test_Unit_IsAFailsOnNil()
 	local function funcToFail()
 		local settings = Settings:New()
 		settings:IsA(nil)
@@ -36,9 +36,9 @@ function TestClassUtil:TestIsAFailsOnNil()
 	LU.assertErrorMsgContains("Passed a nil class to an IsA check", funcToFail)
 end
 
-TestStringUtil = {}
+Test_StringUtil = {}
 
-function TestStringUtil:TestTrim()
+function Test_StringUtil:Test_Unit_Trim()
 	LU.assertEquals(StringUtil.Trim(""), "")
 	LU.assertEquals(StringUtil.Trim(" "), "")
 	LU.assertEquals(StringUtil.Trim("	"), "")
@@ -86,7 +86,7 @@ function TestStringUtil:TestTrim()
 	LU.assertEquals(StringUtil.Trim("\na	b\n"), "a	b")
 end
 
-function TestStringUtil:TestTrimStart()
+function Test_StringUtil:Test_Unit_TrimStart()
 	LU.assertEquals(StringUtil.TrimStart(""), "")
 	LU.assertEquals(StringUtil.TrimStart(" "), "")
 	LU.assertEquals(StringUtil.TrimStart("	"), "")
@@ -134,7 +134,7 @@ function TestStringUtil:TestTrimStart()
 	LU.assertEquals(StringUtil.TrimStart("\na	b\n"), "a	b\n")
 end
 
-function TestStringUtil:TestTrimEnd()
+function Test_StringUtil:Test_Unit_End()
 	LU.assertEquals(StringUtil.TrimEnd(""), "")
 	LU.assertEquals(StringUtil.TrimEnd(" "), "")
 	LU.assertEquals(StringUtil.TrimEnd("	"), "")
@@ -182,9 +182,9 @@ function TestStringUtil:TestTrimEnd()
 	LU.assertEquals(StringUtil.TrimEnd("\na	b\n"), "\na	b")
 end
 
-TestIterator = {}
+Test_Iterator = {}
 
-function TestIterator:TestBasicIterator()
+function Test_Iterator:Test_Class_Make()
 	local iterator = Iterator:New(BasicDatabase.cards, nil, nil)
 	local n = 1
 	for card in iterator:Make_Iterator() do
@@ -193,7 +193,7 @@ function TestIterator:TestBasicIterator()
 	end
 end
 
-function TestIterator:TestIteratorFiltering()
+function Test_Iterator:Test_Class_Filtering()
 	local function SampleFilterFunc(card)
 		return card.CMC > 2
 	end
@@ -207,7 +207,7 @@ function TestIterator:TestIteratorFiltering()
 	LU.assertEquals(count, 4)
 end
 
-function TestIterator:TestIteratorSorting()
+function Test_Iterator:Test_Class_Sorting()
 	local function SampleSortFunc(card1, card2)
 		if card1.CMC < card2.CMC then
 			return true
@@ -242,9 +242,9 @@ function TestIterator:TestIteratorSorting()
 	LU.assertEquals(index, 8)
 end
 
-TestLexer = {}
+Test_Lexer = {}
 
-function TestLexer:TestLexerExtractTokenFromLine()
+function Test_Lexer:Test_Unit_ExtractTokenFromLine()
 	
 	-- First bool parameter is whether we're in template mode currently
 	-- Second bool parameter is whether "easyDirectives" is enabled
@@ -320,7 +320,7 @@ function TestLexer:TestLexerExtractTokenFromLine()
 	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    local foo = true", true, true), Parser.TokenTypes.ScriptLine)
 end
 
-function TestLexer:TestLexerExtractContentFromLine()
+function Test_Lexer:Test_Unit_ExtractContentFromLine()
 	
 	-- First bool parameter is whether we're in template mode currently
 	-- Second bool parameter is whether "easyDirectives" is enabled
@@ -362,7 +362,7 @@ function TestLexer:TestLexerExtractContentFromLine()
 	LU.assertEquals(Lexer.ExtractContentFromLine(".	    FOREACH foo IN bar DO", true, true), "FOREACH foo IN bar DO")
 end
 
-function TestLexer:TestLexerOnSimpleFile()
+function Test_Lexer:Test_Class_OnSimpleFile()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	assert(RunningScriptDir ~= nil)
 
@@ -396,7 +396,7 @@ function TestLexer:TestLexerOnSimpleFile()
 	LU.assertEquals(tokenizedFile.TokensByLine[4].Type, Parser.TokenTypes.ENDSCRIPT)
 end
 
-function TestLexer:TestLexerOnSimpleString()
+function Test_Lexer:Test_Class_OnSimpleString()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	assert(RunningScriptDir ~= nil)
 
@@ -416,7 +416,7 @@ function TestLexer:TestLexerOnSimpleString()
 	LU.assertEquals(tokenizedString[3].Type, Parser.TokenTypes.ENDSCRIPT)
 end
 
-function TestLexer:TestLexerOnSimpleStringButForgotPeriodsAndNoEasyDirectives()
+function Test_Lexer:Test_Class_OnSimpleStringButForgotPeriodsAndNoEasyDirectives()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	assert(RunningScriptDir ~= nil)
 
@@ -435,7 +435,7 @@ function TestLexer:TestLexerOnSimpleStringButForgotPeriodsAndNoEasyDirectives()
 	LU.assertEquals(tokenizedString[1].Type, Parser.TokenTypes.TemplateLine)
 end
 
-function TestLexer:TestLexerOnComplexFile()
+function Test_Lexer:Test_Class_OnComplexFile()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	assert(RunningScriptDir ~= nil)
 
@@ -452,9 +452,9 @@ function TestLexer:TestLexerOnComplexFile()
 	
 end
 
-TestParser = {}
+Test_Parser = {}
 
-function TestParser:TestParserOnSimple()
+function Test_Parser:Test_Class_OnSimple()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	LU.assertTrue(RunningScriptDir ~= nil)
 
@@ -465,7 +465,7 @@ function TestParser:TestParserOnSimple()
 	-- TODO Actually verify the output
 end
 
-function TestParser:TestParserOnComplex()
+function Test_Parser:Test_Class_OnComplex()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	LU.assertTrue(RunningScriptDir ~= nil)
 
@@ -476,7 +476,40 @@ function TestParser:TestParserOnComplex()
 	-- TODO Actually verify the output
 end
 
-function TestParser:DISABLED_TestParserOnCockatrice()
+Test_Integration = {}
+
+function Test_Integration:Test_Integration_OnSimple()
+	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
+	LU.assertTrue(RunningScriptDir ~= nil)
+
+	local parsedTemplate = Parser.Parser.ParseFile(RunningScriptDir.."/test_simple.kengen", Settings:New())
+	LU.assertTrue(parsedTemplate ~= nil)
+	LU.assertTrue(parsedTemplate:IsA(ParsedTemplate))
+	
+	local resultsStream = MemoryOutputStream:New()
+	parsedTemplate:Execute(resultsStream)
+	
+	LU.assertEquals(resultsStream.FinalizedData, "Hello, World\nWelcome to Kengen!\n")
+end
+
+function Test_Integration:Test_Integration_OnCardsSample()
+	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
+	LU.assertTrue(RunningScriptDir ~= nil)
+
+	local settings = Settings:New()
+	settings.XML_STYLE_ACCESS = false
+	
+	local parsedTemplate = Parser.Parser.ParseFile(RunningScriptDir.."/cockatrice-to-mse/test_cards_sample.kengen", settings)
+	LU.assertTrue(parsedTemplate ~= nil)
+	LU.assertTrue(parsedTemplate:IsA(ParsedTemplate))
+	
+	local resultsStream = MemoryOutputStream:New()
+	parsedTemplate:Execute(resultsStream)
+	
+	-- TODO Actually verify the output
+end
+
+function Test_Parser:DISABLED_Test_Class_OnCockatrice()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	LU.assertTrue(RunningScriptDir ~= nil)
 
@@ -491,39 +524,6 @@ function TestParser:DISABLED_TestParserOnCockatrice()
 	parsedTemplate:Execute(resultsStream)
 	
 	print(resultsStream.FinalizedData)
-	
-	-- TODO Actually verify the output
-end
-
-TestGenerator = {}
-
-function TestGenerator:TestGeneratorOnSimple()
-	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
-	LU.assertTrue(RunningScriptDir ~= nil)
-
-	local parsedTemplate = Parser.Parser.ParseFile(RunningScriptDir.."/test_simple.kengen", Settings:New())
-	LU.assertTrue(parsedTemplate ~= nil)
-	LU.assertTrue(parsedTemplate:IsA(ParsedTemplate))
-	
-	local resultsStream = MemoryOutputStream:New()
-	parsedTemplate:Execute(resultsStream)
-	
-	LU.assertEquals(resultsStream.FinalizedData, "Hello, World\nWelcome to Kengen!\n")
-end
-
-function TestParser:TestGeneratorOnCardsSample()
-	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
-	LU.assertTrue(RunningScriptDir ~= nil)
-
-	local settings = Settings:New()
-	settings.XML_STYLE_ACCESS = false
-	
-	local parsedTemplate = Parser.Parser.ParseFile(RunningScriptDir.."/cockatrice-to-mse/test_cards_sample.kengen", settings)
-	LU.assertTrue(parsedTemplate ~= nil)
-	LU.assertTrue(parsedTemplate:IsA(ParsedTemplate))
-	
-	local resultsStream = MemoryOutputStream:New()
-	parsedTemplate:Execute(resultsStream)
 	
 	-- TODO Actually verify the output
 end
