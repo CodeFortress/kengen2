@@ -30,166 +30,203 @@ function Parser:New(tokenizedFile)
     assert(Util.TestUtil.IsTable(tokenizedFile))
 
     local result = self:Create()
-    result.CurPos = 1
     result.File = tokenizedFile
     return result
 end
 
--- Returns the TYPE of the token being looked at
-function Parser:Peek()
-    assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
-
-    if self.CurPos > self.File.Length then
-        return nil
-    end
-
-    return self.File.TokensByLine[self.CurPos].Type
+function Parser:ValidateCursor(cursor, allowBeyondEnd)
+	assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
+	assert(Util.TestUtil.IsNumber(cursor))
+	assert(cursor >= 1)
+	assert(cursor <= self.File.Length or allowBeyondEnd)
 end
 
--- Moves the current position forward one whole token
-function Parser:Advance()
+-- Returns the TYPE of the token located at cursor position
+function Parser:Peek(cursor)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
+	local allowBeyondEnd = true
+	self:ValidateCursor(cursor, allowBeyondEnd)
+	
+	if cursor > self.File.Length then
+		return nil
+	else
+		return self.File.TokensByLine[cursor].Type
+	end
+end
+
+-- Returns the cursor position moved forward one whole token
+function Parser:Advance(cursor)
+    assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
+	self:ValidateCursor(cursor)
 
     -- Advance to end of this token, then add one to be at start of next token
-    self.CurPos = self.File.TokensByLine[self.CurPos].EndPos + 1
-    return self.CurPos
+    return self.File.TokensByLine[cursor].EndPos + 1
 end
 
--- Returns the current Token object
-function Parser:CurToken()
+-- Returns the actual Token object being looked at
+function Parser:CurToken(cursor)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
+	self:ValidateCursor(cursor)
 
-    return self.File.TokensByLine[self.CurPos]
+    return self.File.TokensByLine[cursor]
 end
 
--- Returns the current Token object's type as string
-function Parser:CurTokenString()
+-- Returns the Token object's type as string
+function Parser:CurTokenString(cursor)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
+	self:ValidateCursor(cursor)
 
-    return tostring(TokenTypes.ToString[self.File.TokensByLine[self.CurPos]])
+    return tostring(TokenTypes.ToString[self.File.TokensByLine[cursor]])
 end
 
 -- Root of parser logic
 function Parser:ParseProgram()
+	local cursor = 1
     local nodesList = {}
-    while self:Peek() ~= nil do
-        nodesList[#nodesList + 1] = self:ParseBlock()
+    while self:Peek(cursor) ~= nil do
+        cursor, nodesList[#nodesList + 1] = self:ParseBlock(cursor)
     end
 	local ListNode = ListParseNode:New(nodesList)
     return ParsedTemplate:New(self.File, ListNode)
 end
 
-function Parser:ParseBlock()
-    if self:Peek() == TokenTypes.STARTFUNCTION then
-        return self:ParseFuncBlock()
+function Parser:ParseBlock(cursor)
+	self:ValidateCursor(cursor)
+	
+    if self:Peek(cursor) == TokenTypes.STARTFUNCTION then
+        return self:ParseFuncBlock(cursor)
     else
-        return self:ParseExecBlock()
+        return self:ParseExecBlock(cursor)
     end
 end
 
 -- Bookended chunk means a chunk that has a specific start and end symbol
-function Parser:ParseBookendedBlock(last, openingSymbol, closingSymbol, nodeClass)
+function Parser:ParseBookendedBlock(cursor, last, openingSymbol, closingSymbol, nodeClass)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
+	self:ValidateCursor(cursor)
     assert(Util.TestUtil.IsNumber(last))
     assert(Util.TestUtil.IsNumber(openingSymbol))
     assert(Util.TestUtil.IsNumber(closingSymbol))
     assert(Util.TestUtil.IsTable(nodeClass))
-    assert(self:Peek() == openingSymbol)
+    assert(self:Peek(cursor) == openingSymbol)
 
-    local last = self:FindClosingSymbol(openingSymbol, closingSymbol, true)
-    local chain = self:ParseExecChain(last-1)
+    local last = self:FindClosingSymbol(cursor, openingSymbol, closingSymbol, true)
+    local cursor, chain = self:ParseExecChain(cursor + 1, last-1)
     assert(chain ~= nil, "Failed to parse "..tostring(TokenTypes.ToString[openingSymbol]).." block")
     local result = nodeClass:New(chain)
-    self:Advance() -- skip over the end token!
-    return result
+    cursor = self:Advance(cursor) -- skip over the end token!
+    return cursor, result
 end
 
-function Parser:ParseFuncBlock()
+function Parser:ParseFuncBlock(cursor)
+	self:ValidateCursor(cursor)
+	
     local last = self.File.Length
-    return self:ParseBookendedBlock(last, TokenTypes.STARTFUNCTION, TokenTypes.ENDFUNCTION, FuncParseNode)
+    return self:ParseBookendedBlock(cursor, last, TokenTypes.STARTFUNCTION, TokenTypes.ENDFUNCTION, FuncParseNode)
 end
 
-function Parser:ParseExecChain(last)
+function Parser:ParseExecChain(cursor, last)
+	self:ValidateCursor(cursor)
+	assert(Util.TestUtil.IsNumber(last))
+	
     local nodesList = {}
-    while self:Peek() ~= nil and self.CurPos <= last do
-        nodesList[#nodesList + 1] = self:ParseExecBlock(last)
+    while self:Peek(cursor) ~= nil and cursor <= last do
+        cursor, nodesList[#nodesList + 1] = self:ParseExecBlock(cursor, last)
     end
-    return nodesList
+    return cursor, nodesList
 end
 
-function Parser:ParseExecBlock(last)
+function Parser:ParseExecBlock(cursor, last)
+	self:ValidateCursor(cursor)
+	assert(last == nil or Util.TestUtil.IsNumber(last))
+	
     last = last or self.File.Length
-    if self:Peek() == TokenTypes.IF then
-        return self:ParseIfBlock(last)
-    elseif self:Peek() == TokenTypes.FOREACH then
-        return self:ParseForeachBlock(last)
-    elseif self:Peek() == TokenTypes.STARTSCRIPT then
-        return self:ParseStartScriptBlock(last)
-    elseif self:Peek() == TokenTypes.STARTTEMPLATE then
-        return self:ParseStartTemplateBlock(last)
-    elseif self:Peek() == TokenTypes.ScriptLine then
-        return self:ParseScriptChunk(last)
-    elseif self:Peek() == TokenTypes.TemplateLine then
-        return self:ParseTemplateChunk(last)
-	elseif self:Peek() == TokenTypes.ENDFOREACH then
+    if self:Peek(cursor) == TokenTypes.IF then
+        return self:ParseIfBlock(cursor, last)
+    elseif self:Peek(cursor) == TokenTypes.FOREACH then
+        return self:ParseForeachBlock(cursor, last)
+    elseif self:Peek(cursor) == TokenTypes.STARTSCRIPT then
+        return self:ParseStartScriptBlock(cursor, last)
+    elseif self:Peek(cursor) == TokenTypes.STARTTEMPLATE then
+        return self:ParseStartTemplateBlock(cursor, last)
+    elseif self:Peek(cursor) == TokenTypes.ScriptLine then
+        return self:ParseScriptChunk(cursor, last)
+    elseif self:Peek(cursor) == TokenTypes.TemplateLine then
+        return self:ParseTemplateChunk(cursor, last)
+	elseif self:Peek(cursor) == TokenTypes.ENDFOREACH then
 		assert(false, "Unexpected ENDFOREACH without a matching FOREACH")
-	elseif self:Peek() == TokenTypes.ELSEIF then
+	elseif self:Peek(cursor) == TokenTypes.ELSEIF then
 		assert(false, "Unexpected ELSEIF without a matching IF")
-	elseif self:Peek() == TokenTypes.ELSE then
+	elseif self:Peek(cursor) == TokenTypes.ELSE then
 		assert(false, "Unexpected ELSE without a matching IF")
-	elseif self:Peek() == TokenTypes.ENDIF then
+	elseif self:Peek(cursor) == TokenTypes.ENDIF then
 		assert(false, "Unexpected ENDIF without a matching IF")
     end
 
-    assert(false, "Unexpected symbol for starting an exec block: "..self:CurTokenString())
+    assert(false, "Unexpected symbol for starting an exec block: "..self:CurTokenString(cursor))
 end
 
-function Parser:ParseIfBlock(last)
-    local ifNode = self:ParseBookendedBlock(last, TokenTypes.IF, TokenTypes.ENDIF, IfParseNode)
+function Parser:ParseIfBlock(cursor, last)
+	self:ValidateCursor(cursor)
+	assert(Util.TestUtil.IsNumber(last))
 	
-	return ifNode
+    local cursor, ifNode = self:ParseBookendedBlock(last, TokenTypes.IF, TokenTypes.ENDIF, IfParseNode)
+	
+	return cursor, ifNode
 end
 
-function Parser:ParseForeachBlock(last)
-    return self:ParseBookendedBlock(last, TokenTypes.FOREACH, TokenTypes.ENDFOREACH, ForeachParseNode)
+function Parser:ParseForeachBlock(cursor, last)
+	self:ValidateCursor(cursor)
+	assert(Util.TestUtil.IsNumber(last))
+    return self:ParseBookendedBlock(cursor, last, TokenTypes.FOREACH, TokenTypes.ENDFOREACH, ForeachParseNode)
 end
 
-function Parser:ParseStartScriptBlock(last)
-    return self:ParseBookendedBlock(last, TokenTypes.STARTSCRIPT, TokenTypes.ENDSCRIPT, StartScriptParseNode)
+function Parser:ParseStartScriptBlock(cursor, last)
+	self:ValidateCursor(cursor)
+	assert(Util.TestUtil.IsNumber(last))
+    return self:ParseBookendedBlock(cursor, last, TokenTypes.STARTSCRIPT, TokenTypes.ENDSCRIPT, StartScriptParseNode)
 end
 
-function Parser:ParseStartTemplateBlock(last)
-    return self:ParseBookendedBlock(last, TokenTypes.STARTTEMPLATE, TokenTypes.ENDTEMPLATE, StartTemplateParseNode)
+function Parser:ParseStartTemplateBlock(cursor, last)
+	self:ValidateCursor(cursor)
+	assert(Util.TestUtil.IsNumber(last))
+    return self:ParseBookendedBlock(cursor, last, TokenTypes.STARTTEMPLATE, TokenTypes.ENDTEMPLATE, StartTemplateParseNode)
 end
 
 -- Basic chunk just means a sequence of the same symbol of any count
-function Parser:ParseBasicChunk(last, symbol, nodeClass)
+function Parser:ParseBasicChunk(cursor, last, symbol, nodeClass)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
+	self:ValidateCursor(cursor)
     assert(Util.TestUtil.IsNumber(last))
     assert(Util.TestUtil.IsNumber(symbol))
     assert(Util.TestUtil.IsTable(nodeClass))
-    assert(self:Peek() == symbol)
+    assert(self:Peek(cursor) == symbol)
 
-    local startPos = self.CurPos
+    local startPos = cursor
     local endPos = -1
-    while (self:Peek() == symbol and self.CurPos <= last) do
-        endPos = self:CurToken().EndPos
-        self:Advance()
+    while (self:Peek(cursor) == symbol and cursor <= last) do
+        endPos = self:CurToken(cursor).EndPos
+        cursor = self:Advance(cursor)
     end
     assert(endPos >= startPos)
-    return nodeClass:New(startPos, endPos)
+    return cursor, nodeClass:New(startPos, endPos)
 end
 
-function Parser:ParseScriptChunk(last)
-    return self:ParseBasicChunk(last, TokenTypes.ScriptLine, ScriptChunkParseNode)
+function Parser:ParseScriptChunk(cursor, last)
+	self:ValidateCursor(cursor)
+	assert(Util.TestUtil.IsNumber(last))
+    return self:ParseBasicChunk(cursor, last, TokenTypes.ScriptLine, ScriptChunkParseNode)
 end
 
-function Parser:ParseTemplateChunk(last)
-    return self:ParseBasicChunk(last, TokenTypes.TemplateLine, TemplateChunkParseNode)
+function Parser:ParseTemplateChunk(cursor, last)
+	self:ValidateCursor(cursor)
+	assert(Util.TestUtil.IsNumber(last))
+    return self:ParseBasicChunk(cursor, last, TokenTypes.TemplateLine, TemplateChunkParseNode)
 end
 
-function Parser:ToString()
-    return self.File.Path..":"..tostring(self.CurPos)
+function Parser:ToString(cursor)
+	self:ValidateCursor(cursor)
+    return self.File.Path..":"..tostring(cursor)
 end
 
 -- Find position of a closing symbol while requiring it to be depth-matched with its opening symbol
@@ -199,33 +236,31 @@ end
 --   3:     print("do work")
 --   4:   ENDIF
 --   5: ENDIF
-function Parser:FindClosingSymbol(openingSymbol, closingSymbol, assertOnFail)
+function Parser:FindClosingSymbol(cursor, openingSymbol, closingSymbol, assertOnFail)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
+	self:ValidateCursor(cursor)
     assert(Util.TestUtil.IsNumber(openingSymbol))
     assert(Util.TestUtil.IsNumber(closingSymbol))
 
-    assert(self:Peek() == openingSymbol, "Searching for closing symbol when opening symbol didn't even match!")
-    self:Advance() -- skip the opening symbol
-    local originalPos = self.CurPos
+    assert(self:Peek(cursor) == openingSymbol, "Searching for closing symbol when opening symbol didn't even match!")
+    cursor = self:Advance(cursor) -- skip the opening symbol
 
     local result = nil
     local depthCount = 0
-    while self:Peek() ~= nil do
-        local symbol = self:Peek()
+    while self:Peek(cursor) ~= nil do
+        local symbol = self:Peek(cursor)
         if symbol == openingSymbol then
             depthCount = depthCount + 1
         elseif symbol == closingSymbol and depthCount > 0 then
             depthCount = depthCount - 1
         elseif symbol == closingSymbol then
-            result = self.CurPos
+            result = cursor
             break
         end
-        self:Advance()
+        cursor = self:Advance(cursor)
     end
 
-    self.CurPos = originalPos
-
-    assert((not assertOnFail) or (result ~= nil), "Mismatched symbol "..TokenTypes.ToString[openingSymbol].." was located at "..tostring(self))
+    assert((not assertOnFail) or (result ~= nil), "Mismatched symbol "..TokenTypes.ToString[openingSymbol].." was located at "..self:ToString(cursor))
     
     return result
 end
