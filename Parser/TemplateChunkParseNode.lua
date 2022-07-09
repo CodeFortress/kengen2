@@ -13,7 +13,8 @@ function TemplateChunkParseNode:Execute(executionState)
 	assert(Util.TestUtil.IsTable(executionState) and executionState:IsA(ExecutionState))
 	
 	for index = self.StartPos, self.EndPos, 1 do
-		executionState:WriteLine(executionState:GetCleanLine(index))
+		local cleanLine = executionState:GetCleanLine(index)
+		executionState:WriteLine(cleanLine)
 	end
 end
 

@@ -31,7 +31,38 @@ end
 
 function ExecutionState:GetCleanLine(pos)
 	assert(Util.TestUtil.IsTable(self) and self:IsA(ExecutionState))
-	return self.TokenizedFile:GetCleanLine(pos)
+	return self:ReplaceKengenExpressions(self.TokenizedFile:GetCleanLine(pos), pos, pos)
+end
+
+function ExecutionState:ReplaceKengenExpressions(textChunk, lineNumStart, lineNumEnd)
+	assert(Util.TestUtil.IsTable(self) and self:IsA(ExecutionState))
+	assert(Util.TestUtil.IsString(textChunk))
+	
+	local regex = "%$(%b())"
+	
+	local expressionStart, expressionEnd, expressionWithParens = textChunk:find(regex)
+	while expressionStart ~= nil do
+		local expression = expressionWithParens:sub(2, expressionWithParens:len()-1)
+		
+		local expressionFunc = self:LoadLua("return "..expression, lineNumStart, lineNumEnd)
+		assert(expressionFunc ~= nil,
+			self:MakeError(lineNumStart, "Failed to parse kengen expression '$("..expression..")'"))
+		
+		local result = expressionFunc()
+		assert(result ~= nil,
+			self:MakeError(lineNumStart, "Got a nil result for kengen expression '$("..expression..")', this is not currently supported"))
+		assert(not Util.TestUtil.IsTable(result) or getmetatable(result).__tostring ~= nil,
+			self:MakeError(lineNumStart, "Got a table expression for kengen expression '$("..expression.."), this won't stringify correctly unless it has a __tostring metatable override'"))
+		
+		-- Replace the parameterized expression with result, then try again to see if more work to do
+		local preExpression = textChunk:sub(1, expressionStart-1)
+		local postExpression = textChunk:sub(expressionEnd + 1)
+		textChunk = preExpression..tostring(result)..postExpression
+						
+		expressionStart, expressionEnd, expressionWithParens = textChunk:find(regex)
+	end
+	
+	return textChunk
 end
 
 function ExecutionState:MakeError(lineNum, msg)

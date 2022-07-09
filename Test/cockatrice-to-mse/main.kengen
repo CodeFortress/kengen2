@@ -105,10 +105,8 @@ FOREACH card IN cardDatabase.cards.card WHERE IsInSet(card, SET_ABBREVIATION) an
 	--print ("   isFirst: " .. tostring(IS_FIRST(card)))
 	--print ("   isLast: " .. tostring( IS_LAST(card)))
 	
-	local cost
-	if card.prop.manacost == nil then
-		cost = ""
-	else
+	cost = ""
+	if card.prop.manacost ~= nil then
 		cost = card.prop.manacost
 	end
 	
@@ -121,25 +119,25 @@ FOREACH card IN cardDatabase.cards.card WHERE IsInSet(card, SET_ABBREVIATION) an
 		toughness = ptTextSplit[2]
 	end
 	
-	local cardTypes = card.prop.type
-	local cardTypesSplit = StringUtil.Split(cardTypes, "—")
-	local cardType = cardTypesSplit[1]
+	cardTypes = card.prop.type
+	cardTypesSplit = StringUtil.Split(cardTypes, "—")
+	cardType = cardTypesSplit[1]
 	if cardType ~= nil then
 		cardType = StringUtil.Trim(cardType)
 	end
-	local subTypes = cardTypesSplit[2]
+	subTypes = cardTypesSplit[2]
 	if subTypes == nil then
 		subTypes = ""
 	end
 	
-	local colors = "colorless"
-	local colorsLetters = ""
+	colors = "colorless"
+	colorsLetters = ""
 	if card.prop.colors ~= nil then
 		colorsLetters = card.prop.colors
 	elseif card.prop.coloridentity ~= nil then
 		colorsLetters = card.prop.coloridentity
 	end
-	local colorsList = {}
+	colorsList = {}
 	if string.find(colorsLetters, "W") then
 		colorsList[#colorsList + 1] = "white"
 	end
@@ -175,7 +173,7 @@ FOREACH card IN cardDatabase.cards.card WHERE IsInSet(card, SET_ABBREVIATION) an
 		end
 	end
 	
-	local rules = card.text
+	rules = card.text
 	if rules == nil then
 		rules = ""
 	else
