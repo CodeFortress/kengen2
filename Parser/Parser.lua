@@ -1,5 +1,6 @@
 local ParsedTemplate = require("kengen2.Execution.ParsedTemplate")
 local Settings = require("kengen2.Framework.Settings")
+local TokenizedFile = require("kengen2.Parser.TokenizedFile")
 local TokenTypes = require("kengen2.Parser.TokenTypes")
 local Util = require("kengen2.Util")
 
@@ -27,7 +28,7 @@ end
 
 function Parser:New(tokenizedFile)
     assert(Util.TestUtil.IsTable(self))
-    assert(Util.TestUtil.IsTable(tokenizedFile))
+    assert(Util.TestUtil.IsTable(tokenizedFile) and tokenizedFile:IsA(TokenizedFile))
 
     local result = self:Create()
     result.File = tokenizedFile
@@ -76,7 +77,8 @@ function Parser:CurTokenString(cursor)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
 	self:ValidateCursor(cursor)
 
-    return tostring(TokenTypes.ToString[self.File.TokensByLine[cursor]])
+	local token = self.File.TokensByLine[cursor]
+    return tostring(TokenTypes.ToString[token.Type])
 end
 
 -- Root of parser logic

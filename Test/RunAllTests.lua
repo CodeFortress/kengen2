@@ -5,7 +5,8 @@ local Iterator = require("kengen2.Framework.Iterator")
 local Settings = require("kengen2.Framework.Settings")
 
 local Lexer = require("kengen2.Parser.Lexer")
-local Parser = require("kengen2.Parser")
+local Parser = require("kengen2.Parser.Parser")
+local TokenTypes = require("kengen2.Parser.TokenTypes")
 
 local ParsedTemplate = require("kengen2.Execution.ParsedTemplate")
 local FileOutputStream = require("kengen2.Execution.FileOutputStream")
@@ -249,75 +250,75 @@ function Test_Lexer:Test_Unit_ExtractTokenFromLine()
 	-- First bool parameter is whether we're in template mode currently
 	-- Second bool parameter is whether "easyDirectives" is enabled
 	
-	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTSCRIPT", false, false), Parser.TokenTypes.STARTSCRIPT)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTSCRIPT", false, true), Parser.TokenTypes.STARTSCRIPT)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTSCRIPT", true, false), Parser.TokenTypes.TemplateLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTSCRIPT", true, true), Parser.TokenTypes.STARTSCRIPT)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTSCRIPT", false, false), TokenTypes.STARTSCRIPT)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTSCRIPT", false, true), TokenTypes.STARTSCRIPT)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTSCRIPT", true, false), TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTSCRIPT", true, true), TokenTypes.STARTSCRIPT)
 	
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTSCRIPT", false, false), Parser.TokenTypes.STARTSCRIPT)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTSCRIPT", false, true), Parser.TokenTypes.STARTSCRIPT)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTSCRIPT", true, false), Parser.TokenTypes.STARTSCRIPT)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTSCRIPT", true, true), Parser.TokenTypes.STARTSCRIPT)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTSCRIPT", false, false), TokenTypes.STARTSCRIPT)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTSCRIPT", false, true), TokenTypes.STARTSCRIPT)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTSCRIPT", true, false), TokenTypes.STARTSCRIPT)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTSCRIPT", true, true), TokenTypes.STARTSCRIPT)
 	
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTSCRIPT", false, false), Parser.TokenTypes.STARTSCRIPT)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTSCRIPT", false, true), Parser.TokenTypes.STARTSCRIPT)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTSCRIPT", true, false), Parser.TokenTypes.STARTSCRIPT)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTSCRIPT", true, true), Parser.TokenTypes.STARTSCRIPT)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTSCRIPT", false, false), TokenTypes.STARTSCRIPT)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTSCRIPT", false, true), TokenTypes.STARTSCRIPT)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTSCRIPT", true, false), TokenTypes.STARTSCRIPT)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTSCRIPT", true, true), TokenTypes.STARTSCRIPT)
 	
-	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    STARTSCRIPT", false, false), Parser.TokenTypes.TemplateLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    STARTSCRIPT", false, true), Parser.TokenTypes.STARTSCRIPT)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    STARTSCRIPT", true, false), Parser.TokenTypes.TemplateLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    STARTSCRIPT", true, true), Parser.TokenTypes.STARTSCRIPT)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    STARTSCRIPT", false, false), TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    STARTSCRIPT", false, true), TokenTypes.STARTSCRIPT)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    STARTSCRIPT", true, false), TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    STARTSCRIPT", true, true), TokenTypes.STARTSCRIPT)
 	
-	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTTEMPLATE", false, false), Parser.TokenTypes.STARTTEMPLATE)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTTEMPLATE", false, true), Parser.TokenTypes.STARTTEMPLATE)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTTEMPLATE", true, false), Parser.TokenTypes.TemplateLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTTEMPLATE", true, true), Parser.TokenTypes.STARTTEMPLATE)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTTEMPLATE", false, false), TokenTypes.STARTTEMPLATE)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTTEMPLATE", false, true), TokenTypes.STARTTEMPLATE)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTTEMPLATE", true, false), TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("STARTTEMPLATE", true, true), TokenTypes.STARTTEMPLATE)
 	
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTTEMPLATE", false, false), Parser.TokenTypes.STARTTEMPLATE)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTTEMPLATE", false, true), Parser.TokenTypes.STARTTEMPLATE)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTTEMPLATE", true, false), Parser.TokenTypes.STARTTEMPLATE)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTTEMPLATE", true, true), Parser.TokenTypes.STARTTEMPLATE)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTTEMPLATE", false, false), TokenTypes.STARTTEMPLATE)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTTEMPLATE", false, true), TokenTypes.STARTTEMPLATE)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTTEMPLATE", true, false), TokenTypes.STARTTEMPLATE)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".STARTTEMPLATE", true, true), TokenTypes.STARTTEMPLATE)
 	
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTTEMPLATE", false, false), Parser.TokenTypes.STARTTEMPLATE)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTTEMPLATE", false, true), Parser.TokenTypes.STARTTEMPLATE)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTTEMPLATE", true, false), Parser.TokenTypes.STARTTEMPLATE)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTTEMPLATE", true, true), Parser.TokenTypes.STARTTEMPLATE)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTTEMPLATE", false, false), TokenTypes.STARTTEMPLATE)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTTEMPLATE", false, true), TokenTypes.STARTTEMPLATE)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTTEMPLATE", true, false), TokenTypes.STARTTEMPLATE)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    STARTTEMPLATE", true, true), TokenTypes.STARTTEMPLATE)
 	
-	LU.assertEquals(Lexer.ExtractTokenFromLine("FOREACH foo IN bar DO", false, false), Parser.TokenTypes.FOREACH)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("FOREACH foo IN bar DO", false, true), Parser.TokenTypes.FOREACH)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("FOREACH foo IN bar DO", true, false), Parser.TokenTypes.TemplateLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("FOREACH foo IN bar DO", true, true), Parser.TokenTypes.FOREACH)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("FOREACH foo IN bar DO", false, false), TokenTypes.FOREACH)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("FOREACH foo IN bar DO", false, true), TokenTypes.FOREACH)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("FOREACH foo IN bar DO", true, false), TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("FOREACH foo IN bar DO", true, true), TokenTypes.FOREACH)
 	
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".FOREACH foo IN bar DO", false, false), Parser.TokenTypes.FOREACH)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".FOREACH foo IN bar DO", false, true), Parser.TokenTypes.FOREACH)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".FOREACH foo IN bar DO", true, false), Parser.TokenTypes.FOREACH)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".FOREACH foo IN bar DO", true, true), Parser.TokenTypes.FOREACH)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".FOREACH foo IN bar DO", false, false), TokenTypes.FOREACH)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".FOREACH foo IN bar DO", false, true), TokenTypes.FOREACH)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".FOREACH foo IN bar DO", true, false), TokenTypes.FOREACH)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".FOREACH foo IN bar DO", true, true), TokenTypes.FOREACH)
 	
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    FOREACH foo IN bar DO", false, false), Parser.TokenTypes.FOREACH)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    FOREACH foo IN bar DO", false, true), Parser.TokenTypes.FOREACH)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    FOREACH foo IN bar DO", true, false), Parser.TokenTypes.FOREACH)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    FOREACH foo IN bar DO", true, true), Parser.TokenTypes.FOREACH)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    FOREACH foo IN bar DO", false, false), TokenTypes.FOREACH)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    FOREACH foo IN bar DO", false, true), TokenTypes.FOREACH)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    FOREACH foo IN bar DO", true, false), TokenTypes.FOREACH)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    FOREACH foo IN bar DO", true, true), TokenTypes.FOREACH)
 	
-	LU.assertEquals(Lexer.ExtractTokenFromLine("local foo = true", false, false), Parser.TokenTypes.ScriptLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("local foo = true", false, true), Parser.TokenTypes.ScriptLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("local foo = true", true, false), Parser.TokenTypes.TemplateLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("local foo = true", true, true), Parser.TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("local foo = true", false, false), TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("local foo = true", false, true), TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("local foo = true", true, false), TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("local foo = true", true, true), TokenTypes.TemplateLine)
 	
-	LU.assertEquals(Lexer.ExtractTokenFromLine("		local foo = true", false, false), Parser.TokenTypes.ScriptLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("		local foo = true", false, true), Parser.TokenTypes.ScriptLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("		local foo = true", true, false), Parser.TokenTypes.TemplateLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine("		local foo = true", true, true), Parser.TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("		local foo = true", false, false), TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("		local foo = true", false, true), TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("		local foo = true", true, false), TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine("		local foo = true", true, true), TokenTypes.TemplateLine)
 	
-	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    local foo = true", false, false), Parser.TokenTypes.TemplateLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    local foo = true", false, true), Parser.TokenTypes.TemplateLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    local foo = true", true, false), Parser.TokenTypes.TemplateLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    local foo = true", true, true), Parser.TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    local foo = true", false, false), TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    local foo = true", false, true), TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    local foo = true", true, false), TokenTypes.TemplateLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(">	    local foo = true", true, true), TokenTypes.TemplateLine)
 	
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    local foo = true", false, false), Parser.TokenTypes.ScriptLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    local foo = true", false, true), Parser.TokenTypes.ScriptLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    local foo = true", true, false), Parser.TokenTypes.ScriptLine)
-	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    local foo = true", true, true), Parser.TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    local foo = true", false, false), TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    local foo = true", false, true), TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    local foo = true", true, false), TokenTypes.ScriptLine)
+	LU.assertEquals(Lexer.ExtractTokenFromLine(".	    local foo = true", true, true), TokenTypes.ScriptLine)
 end
 
 function Test_Lexer:Test_Unit_ExtractContentFromLine()
@@ -366,7 +367,7 @@ function Test_Lexer:Test_Class_OnSimpleFile()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	assert(RunningScriptDir ~= nil)
 
-	local tokenizedFile = Parser.Lexer.Tokenize(RunningScriptDir.."/test_simple.kengen", Settings:New())
+	local tokenizedFile = Lexer.Tokenize(RunningScriptDir.."/test_simple.kengen", Settings:New())
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile))
 	LU.assertEquals(tokenizedFile.Length, 4)
 	LU.assertEquals(tokenizedFile.Path, RunningScriptDir.."/test_simple.kengen")
@@ -381,26 +382,26 @@ function Test_Lexer:Test_Class_OnSimpleFile()
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile.Tokens[1]))
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile.Tokens[2]))
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile.Tokens[3]))
-	LU.assertEquals(tokenizedFile.Tokens[1].Type, Parser.TokenTypes.STARTSCRIPT)
-	LU.assertEquals(tokenizedFile.Tokens[2].Type, Parser.TokenTypes.TemplateLine)
-	LU.assertEquals(tokenizedFile.Tokens[3].Type, Parser.TokenTypes.ENDSCRIPT)
+	LU.assertEquals(tokenizedFile.Tokens[1].Type, TokenTypes.STARTSCRIPT)
+	LU.assertEquals(tokenizedFile.Tokens[2].Type, TokenTypes.TemplateLine)
+	LU.assertEquals(tokenizedFile.Tokens[3].Type, TokenTypes.ENDSCRIPT)
 	
 	LU.assertEquals(#tokenizedFile.TokensByLine, 4)
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile.TokensByLine[1]))
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile.TokensByLine[2]))
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile.TokensByLine[3]))
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile.TokensByLine[4]))
-	LU.assertEquals(tokenizedFile.TokensByLine[1].Type, Parser.TokenTypes.STARTSCRIPT)
-	LU.assertEquals(tokenizedFile.TokensByLine[2].Type, Parser.TokenTypes.TemplateLine)
-	LU.assertEquals(tokenizedFile.TokensByLine[3].Type, Parser.TokenTypes.TemplateLine)
-	LU.assertEquals(tokenizedFile.TokensByLine[4].Type, Parser.TokenTypes.ENDSCRIPT)
+	LU.assertEquals(tokenizedFile.TokensByLine[1].Type, TokenTypes.STARTSCRIPT)
+	LU.assertEquals(tokenizedFile.TokensByLine[2].Type, TokenTypes.TemplateLine)
+	LU.assertEquals(tokenizedFile.TokensByLine[3].Type, TokenTypes.TemplateLine)
+	LU.assertEquals(tokenizedFile.TokensByLine[4].Type, TokenTypes.ENDSCRIPT)
 end
 
 function Test_Lexer:Test_Class_OnSimpleString()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	assert(RunningScriptDir ~= nil)
 
-	local tokenizedString = Parser.Lexer.TokenizeString(
+	local tokenizedString = Lexer.TokenizeString(
 		[[.STARTSCRIPT
 		print("Hello, World")
 		print("Welcome to kengen!")
@@ -411,9 +412,9 @@ function Test_Lexer:Test_Class_OnSimpleString()
 	LU.assertTrue(TestUtil.IsTable(tokenizedString[1]))
 	LU.assertTrue(TestUtil.IsTable(tokenizedString[2]))
 	LU.assertTrue(TestUtil.IsTable(tokenizedString[3]))
-	LU.assertEquals(tokenizedString[1].Type, Parser.TokenTypes.STARTSCRIPT)
-	LU.assertEquals(tokenizedString[2].Type, Parser.TokenTypes.ScriptLine)
-	LU.assertEquals(tokenizedString[3].Type, Parser.TokenTypes.ENDSCRIPT)
+	LU.assertEquals(tokenizedString[1].Type, TokenTypes.STARTSCRIPT)
+	LU.assertEquals(tokenizedString[2].Type, TokenTypes.ScriptLine)
+	LU.assertEquals(tokenizedString[3].Type, TokenTypes.ENDSCRIPT)
 end
 
 function Test_Lexer:Test_Class_OnSimpleStringButForgotPeriodsAndNoEasyDirectives()
@@ -423,7 +424,7 @@ function Test_Lexer:Test_Class_OnSimpleStringButForgotPeriodsAndNoEasyDirectives
 	local settings = Settings:New()
 	settings.EASY_DIRECTIVES = false
 	
-	local tokenizedString = Parser.Lexer.TokenizeString(
+	local tokenizedString = Lexer.TokenizeString(
 		[[STARTSCRIPT
 		print("Hello, World")
 		print("Welcome to kengen!")
@@ -432,7 +433,7 @@ function Test_Lexer:Test_Class_OnSimpleStringButForgotPeriodsAndNoEasyDirectives
 		
 	LU.assertEquals(#tokenizedString, 1)
 	LU.assertTrue(TestUtil.IsTable(tokenizedString[1]))
-	LU.assertEquals(tokenizedString[1].Type, Parser.TokenTypes.TemplateLine)
+	LU.assertEquals(tokenizedString[1].Type, TokenTypes.TemplateLine)
 end
 
 function Test_Lexer:Test_Class_OnComplexFile()
@@ -440,7 +441,7 @@ function Test_Lexer:Test_Class_OnComplexFile()
 	assert(RunningScriptDir ~= nil)
 
 	local settings = Settings:New()
-	local tokenizedFile = Parser.Lexer.Tokenize(RunningScriptDir.."/test_complex.kengen", settings)
+	local tokenizedFile = Lexer.Tokenize(RunningScriptDir.."/test_complex.kengen", settings)
 	LU.assertTrue(TestUtil.IsTable(tokenizedFile))
 	LU.assertEquals(tokenizedFile.Length, 22)
 	LU.assertEquals(tokenizedFile.Path, RunningScriptDir.."/test_complex.kengen")
@@ -454,11 +455,54 @@ end
 
 Test_Parser = {}
 
+function Test_Parser:setUp()
+	local sampleFile = [[STARTSCRIPT
+		print("Hello, World")
+		print("Welcome to kengen!")
+		ENDSCRIPT]]
+	local tokenizedFile = Lexer.TokenizeStringToFile(sampleFile, Settings:New())
+	self.SampleParser = Parser:New(tokenizedFile)
+end
+
+function Test_Parser:Test_Unit_ValidateCursor()
+	LU.assertError(function()
+		self.SampleParser:ValidateCursor(0)
+	end)
+	LU.assertError(function()
+		self.SampleParser:ValidateCursor(100)
+	end)
+	LU.assertError(function()
+		self.SampleParser:ValidateCursor("1")
+	end)
+end
+
+function Test_Parser:Test_Unit_CursorLookups()
+	LU.assertEquals(self.SampleParser:Peek(1), TokenTypes.STARTSCRIPT)
+	LU.assertEquals(self.SampleParser:Peek(2), TokenTypes.ScriptLine)
+	LU.assertEquals(self.SampleParser:Peek(3), TokenTypes.ScriptLine)
+	LU.assertEquals(self.SampleParser:Peek(4), TokenTypes.ENDSCRIPT)
+	
+	LU.assertEquals(self.SampleParser:Advance(1), 2)
+	LU.assertEquals(self.SampleParser:Advance(2), 4)
+	LU.assertEquals(self.SampleParser:Advance(3), 4)
+	LU.assertEquals(self.SampleParser:Advance(4), 5)
+	
+	LU.assertEquals(self.SampleParser:CurToken(1).Type, TokenTypes.STARTSCRIPT)
+	LU.assertEquals(self.SampleParser:CurToken(2).Type, TokenTypes.ScriptLine)
+	LU.assertEquals(self.SampleParser:CurToken(3).Type, TokenTypes.ScriptLine)
+	LU.assertEquals(self.SampleParser:CurToken(4).Type, TokenTypes.ENDSCRIPT)
+	
+	LU.assertEquals(self.SampleParser:CurTokenString(1), TokenTypes.ToString[TokenTypes.STARTSCRIPT])
+	LU.assertEquals(self.SampleParser:CurTokenString(2), TokenTypes.ToString[TokenTypes.ScriptLine])
+	LU.assertEquals(self.SampleParser:CurTokenString(3), TokenTypes.ToString[TokenTypes.ScriptLine])
+	LU.assertEquals(self.SampleParser:CurTokenString(4), TokenTypes.ToString[TokenTypes.ENDSCRIPT])
+end
+
 function Test_Parser:Test_Class_OnSimple()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	LU.assertTrue(RunningScriptDir ~= nil)
 
-	local Result = Parser.Parser.ParseFile(RunningScriptDir.."/test_simple.kengen", Settings:New())
+	local Result = Parser.ParseFile(RunningScriptDir.."/test_simple.kengen", Settings:New())
 	LU.assertTrue(Result ~= nil)
 	LU.assertTrue(Result:IsA(ParsedTemplate))
 	
@@ -469,7 +513,7 @@ function Test_Parser:Test_Class_OnComplex()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	LU.assertTrue(RunningScriptDir ~= nil)
 
-	local Result = Parser.Parser.ParseFile(RunningScriptDir.."/test_complex.kengen", Settings:New())
+	local Result = Parser.ParseFile(RunningScriptDir.."/test_complex.kengen", Settings:New())
 	LU.assertTrue(Result ~= nil)
 	LU.assertTrue(Result:IsA(ParsedTemplate))
 	
@@ -482,7 +526,7 @@ function Test_Integration:Test_Integration_OnSimple()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	LU.assertTrue(RunningScriptDir ~= nil)
 
-	local parsedTemplate = Parser.Parser.ParseFile(RunningScriptDir.."/test_simple.kengen", Settings:New())
+	local parsedTemplate = Parser.ParseFile(RunningScriptDir.."/test_simple.kengen", Settings:New())
 	LU.assertTrue(parsedTemplate ~= nil)
 	LU.assertTrue(parsedTemplate:IsA(ParsedTemplate))
 	
@@ -499,7 +543,7 @@ function Test_Integration:Test_Integration_OnCardsSample()
 	local settings = Settings:New()
 	settings.XML_STYLE_ACCESS = false
 	
-	local parsedTemplate = Parser.Parser.ParseFile(RunningScriptDir.."/cockatrice-to-mse/test_cards_sample.kengen", settings)
+	local parsedTemplate = Parser.ParseFile(RunningScriptDir.."/cockatrice-to-mse/test_cards_sample.kengen", settings)
 	LU.assertTrue(parsedTemplate ~= nil)
 	LU.assertTrue(parsedTemplate:IsA(ParsedTemplate))
 	
@@ -509,14 +553,14 @@ function Test_Integration:Test_Integration_OnCardsSample()
 	-- TODO Actually verify the output
 end
 
-function Test_Parser:DISABLED_Test_Class_OnCockatrice()
+function Test_Integration:DISABLED_Test_Class_OnCockatrice()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	LU.assertTrue(RunningScriptDir ~= nil)
 
 	local settings = Settings:New()
 	settings.XML_STYLE_ACCESS = true
 	
-	local parsedTemplate = Parser.Parser.ParseFile(RunningScriptDir.."/cockatrice-to-mse/main.kengen", settings)
+	local parsedTemplate = Parser.ParseFile(RunningScriptDir.."/cockatrice-to-mse/main.kengen", settings)
 	LU.assertTrue(parsedTemplate ~= nil)
 	LU.assertTrue(parsedTemplate:IsA(ParsedTemplate))
 	

@@ -27,8 +27,17 @@ function Lexer.TokenizeString(string, settings)
 	assert(TestUtil.IsString(string))
 	assert(TestUtil.IsTable(settings) and settings:IsA(Settings))
 	
-	local stringsByLine, cleanStringsByLine, tokens = Lexer.TokenizeImpl("<RawString>", string, settings)
-	return tokens
+	return Lexer.TokenizeStringToFile(string, settings).Tokens
+end
+
+-- Takes a kengen string and returns a TokenizedFile
+function Lexer.TokenizeStringToFile(string, settings)
+	assert(TestUtil.IsString(string))
+	assert(TestUtil.IsTable(settings) and settings:IsA(Settings))
+	
+	local filepath = "<RawString>"
+	local stringsByLine, cleanStringsByLine, tokens = Lexer.TokenizeImpl(filepath, string, settings)
+	return TokenizedFile:New(filepath, stringsByLine, cleanStringsByLine, tokens, settings)
 end
 
 -- returns a token type for the provided line
