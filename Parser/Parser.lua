@@ -123,7 +123,6 @@ function Parser:ParseBookendedBlock(cursor, last, openingSymbol, closingSymbol, 
     assert(Util.TestUtil.IsTable(nodeClass))
     assert(self:Peek(cursor) == openingSymbol)
 
-    --last = self:FindClosingSymbol(cursor, openingSymbol, closingSymbol, true)
 	last = self:FindSymbolAtDepth(cursor, openingSymbol, { closingSymbol })
 	local chain = nil
     cursor, chain = self:ParseExecChain(cursor + 1, last-1)
@@ -189,8 +188,42 @@ function Parser:ParseIfBlock(cursor, last)
 	self:ValidateCursor(cursor)
 	assert(Util.TestUtil.IsNumber(last))
 	
-    local cursor, ifNode = self:ParseBookendedBlock(last, TokenTypes.IF, TokenTypes.ENDIF, IfParseNode)
+	local cursorStart = cursor
 	
+	local allowedSymbols = {}
+	allowedSymbols[TokenTypes.ELSEIF] = true
+	allowedSymbols[TokenTypes.ELSE] = true
+	allowedSymbols[TokenTypes.ENDIF] = true
+	
+	while #allowedSymbols > 0 do
+		local nextRelevantSymbolPos = self:FindSymbolAtDepth(cursor, TokenTypes.IF, { TokenTypes.ELSEIF, TokenTypes.ELSE, TokenTypes.ENDIF })
+		local nextRelevantSymbol = self:Peek(nextRelevantSymbolPos)
+		assert(
+			allowedSymbols[nextRelevantSymbol] == true,
+			"Unexpected structure for IF block starting at "..self:ToString(cursorStart)..
+			" with symbol '"..TokenTypes.ToString[nextRelevantSymbol].."' at "..self:ToString(nextRelevantSymbolPos))
+		
+		if nextRelevantSymbol == TokenTypes.ELSEIF then
+			
+		elseif nextRelevantSymbol == TokenTypes.ELSE then
+			-- once an ELSE is found, only ENDIF remains
+			allowedSymbols[TokenTypes.ELSEIF] = false
+			allowedSymbols[TokenTypes.ELSE] = false
+			
+		elseif nextRelevantSymbol == TokenTypes.ENDIF then
+			-- once an ENDIF is found, the structure is concluded
+			allowedSymbols = {}
+		else
+			error("Unexpected code location reached; why did FindSymbolAtDepth return a position with a "..nextRelevantSymbol)
+		end
+		
+		local chain = nil
+		cursor, chain = self:ParseExecChain(cursor + 1, last-1)
+		assert(chain ~= nil, "Failed to parse "..tostring(TokenTypes.ToString[openingSymbol]).." block")
+		local result = nodeClass:New(chain)
+		cursor = self:Advance(cursor) -- skip over the end token!
+	end
+		
 	return cursor, ifNode
 end
 
