@@ -8,6 +8,10 @@ local Lexer = require("kengen2.Parser.Lexer")
 local Parser = require("kengen2.Parser.Parser")
 local TokenTypes = require("kengen2.Parser.TokenTypes")
 
+local FuncParseNode = require("kengen2.Parser.FuncParseNode")
+local ListParseNode = require("kengen2.Parser.ListParseNode")
+local ScriptChunkParseNode = require("kengen2.Parser.ScriptChunkParseNode")
+
 local ParsedTemplate = require("kengen2.Execution.ParsedTemplate")
 local FileOutputStream = require("kengen2.Execution.FileOutputStream")
 local MemoryOutputStream = require("kengen2.Execution.MemoryOutputStream")
@@ -459,7 +463,29 @@ function Test_Parser:setUp()
 	local sampleFile = [[STARTSCRIPT
 		print("Hello, World")
 		print("Welcome to kengen!")
-		ENDSCRIPT]]
+		ENDSCRIPT
+		
+		STARTFUNCTION PrintHelloWorld()
+			print("Hello again, World")
+		ENDFUNCTION
+		
+		.print("This is an ExecBlock")
+		.print("It's embedded right into the file")]]
+	local sampleFileLines = StringUtil.Split(sampleFile, "\n")
+	local findLineNumber = function(lines, substring)
+		for index, value in ipairs(sampleFileLines) do
+			if value:find(substring) ~= nil then
+				return index
+			end
+		end
+		error("Could not find a line with expected string: "..substring)
+		return nil
+	end
+	
+	self.TestLineNumbers = {}
+	self.TestLineNumbers.FunctionPrintHelloWorld = findLineNumber(sampleFileLines, "STARTFUNCTION PrintHelloWorld")
+	self.TestLineNumbers.ExecBlock = findLineNumber(sampleFileLines, "This is an ExecBlock")
+	
 	local tokenizedFile = Lexer.TokenizeStringToFile(sampleFile, Settings:New())
 	self.SampleParser = Parser:New(tokenizedFile)
 end
@@ -469,11 +495,14 @@ function Test_Parser:Test_Unit_ValidateCursor()
 		self.SampleParser:ValidateCursor(0)
 	end)
 	LU.assertError(function()
-		self.SampleParser:ValidateCursor(100)
+		self.SampleParser:ValidateCursor(9999)
 	end)
 	LU.assertError(function()
 		self.SampleParser:ValidateCursor("1")
 	end)
+
+	self.SampleParser:ValidateCursor(1)
+	self.SampleParser:ValidateCursor(4)
 end
 
 function Test_Parser:Test_Unit_CursorLookups()
@@ -496,6 +525,20 @@ function Test_Parser:Test_Unit_CursorLookups()
 	LU.assertEquals(self.SampleParser:CurTokenString(2), TokenTypes.ToString[TokenTypes.ScriptLine])
 	LU.assertEquals(self.SampleParser:CurTokenString(3), TokenTypes.ToString[TokenTypes.ScriptLine])
 	LU.assertEquals(self.SampleParser:CurTokenString(4), TokenTypes.ToString[TokenTypes.ENDSCRIPT])
+end
+
+function Test_Parser:Test_Unit_ParseBlock()
+	local cursor, node = self.SampleParser:ParseBlock(self.TestLineNumbers.FunctionPrintHelloWorld)
+	LU.assertEquals(cursor, self.TestLineNumbers.FunctionPrintHelloWorld + 3)
+	LU.assertTrue(node:IsA(FuncParseNode))
+	
+	local cursor, node = self.SampleParser:ParseBlock(self.TestLineNumbers.ExecBlock)
+	LU.assertTrue(node:IsA(ScriptChunkParseNode))
+end
+
+function Test_Parser:Test_Unit_ParseBookendedBlock()
+	-- TODO -- May be rewriting that function to support more complex logic
+	-- so that each start symbol doesn't require a unique end symbol
 end
 
 function Test_Parser:Test_Class_OnSimple()
