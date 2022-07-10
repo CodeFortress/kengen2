@@ -123,7 +123,8 @@ function Parser:ParseBookendedBlock(cursor, last, openingSymbol, closingSymbol, 
     assert(Util.TestUtil.IsTable(nodeClass))
     assert(self:Peek(cursor) == openingSymbol)
 
-    last = self:FindClosingSymbol(cursor, openingSymbol, closingSymbol, true)
+    --last = self:FindClosingSymbol(cursor, openingSymbol, closingSymbol, true)
+	last = self:FindSymbolAtDepth(cursor, openingSymbol, { closingSymbol })
 	local chain = nil
     cursor, chain = self:ParseExecChain(cursor + 1, last-1)
     assert(chain ~= nil, "Failed to parse "..tostring(TokenTypes.ToString[openingSymbol]).." block")
@@ -254,54 +255,27 @@ function Parser:ToString(cursor)
     return self.File.Path..":"..tostring(cursor)
 end
 
--- Find position of a closing symbol while requiring it to be depth-matched with its opening symbol
--- e.g. this will return 5 if run from line 1 with openingSymbol=IF, closingSymbol=ENDIF
+-- Find position of an upcoming symbol while requiring it to be depth-matched with its opening symbol
+-- e.g. this will return 5 if run from line 1 with openingSymbol=IF, symbolsToFind={ENDIF}
 --   1: IF foo
 --   2:   IF bar
 --   3:     print("do work")
 --   4:   ENDIF
 --   5: ENDIF
-function Parser:FindClosingSymbol(cursor, openingSymbol, closingSymbol, assertOnFail)
-    assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
-	self:ValidateCursor(cursor)
-    assert(Util.TestUtil.IsNumber(openingSymbol))
-    assert(Util.TestUtil.IsNumber(closingSymbol))
-
-    assert(self:Peek(cursor) == openingSymbol, "Searching for closing symbol when opening symbol didn't even match!")
-    cursor = self:Advance(cursor) -- skip the opening symbol
-
-    local result = nil
-    local depthCount = 0
-    while self:Peek(cursor) ~= nil do
-        local symbol = self:Peek(cursor)
-        if symbol == openingSymbol then
-            depthCount = depthCount + 1
-        elseif symbol == closingSymbol and depthCount > 0 then
-            depthCount = depthCount - 1
-        elseif symbol == closingSymbol then
-            result = cursor
-            break
-        end
-        cursor = self:Advance(cursor)
-    end
-
-    assert((not assertOnFail) or (result ~= nil), "Mismatched symbol "..TokenTypes.ToString[openingSymbol].." was located at "..self:ToString(cursor))
-    
-    return result
-end
-
-function Parser:FindSymbolAtDepth(cursor, openingSymbol, symbolsToFind, symbolPairs)
+-- allows multiple 'symbolsToFind' so that it can be used with IF to search for IF, ELSEIF, ELSE
+function Parser:FindSymbolAtDepth(cursor, openingSymbol, symbolsToFind)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
 	self:ValidateCursor(cursor)
     assert(Util.TestUtil.IsNumber(openingSymbol))
     assert(Util.TestUtil.IsTable(symbolsToFind))
-	assert(Util.TestUtil.IsTable(symbolPairs))
-	for opener, closer in pairs(symbolPairs) do
-		assert(Util.TestUtil.IsNumber(opener))
-		assert(Util.TestUtil.IsNumber(closer))
+	assert(#symbolsToFind > 0)
+	for _, symbol in ipairs(symbolsToFind) do
+		assert(Util.TestUtil.IsNumber(symbol))
 	end
 
     assert(self:Peek(cursor) == openingSymbol, "Searching for closing symbol when opening symbol didn't even match!")
+	
+	local cursorStart = cursor
     cursor = self:Advance(cursor) -- skip the opening symbol
 
     local result = nil
@@ -310,7 +284,7 @@ function Parser:FindSymbolAtDepth(cursor, openingSymbol, symbolsToFind, symbolPa
     while self:Peek(cursor) ~= nil and result == nil do
         local symbolAtCursor = self:Peek(cursor)
 		local foundMatch = false
-		for opener, closer in pairs(symbolPairs) do
+		for opener, closer in pairs(Parser.SymbolPairs) do
 			if not foundMatch then
 				if symbolAtCursor == opener then
 					closingSymbolStack:push(closer)
@@ -334,7 +308,9 @@ function Parser:FindSymbolAtDepth(cursor, openingSymbol, symbolsToFind, symbolPa
         cursor = self:Advance(cursor)
     end
 
-    assert(result ~= nil, "Mismatched symbol "..TokenTypes.ToString[openingSymbol].." was located at "..self:ToString(cursor))
+    assert(
+		result ~= nil,
+		"Mismatched symbol "..TokenTypes.ToString[openingSymbol].." was located at chunk starting at "..self:ToString(cursorStart))
     
     return result
 end
