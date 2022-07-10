@@ -14,7 +14,16 @@ local StartTemplateParseNode = require("kengen2.Parser.StartTemplateParseNode")
 local ScriptChunkParseNode = require("kengen2.Parser.ScriptChunkParseNode")
 local TemplateChunkParseNode = require("kengen2.Parser.TemplateChunkParseNode")
 
+local SimpleStack = require("kengen2.ThirdParty.SimpleStack")
+
 local Parser = Util.ClassUtil.CreateClass("Parser", nil)
+
+Parser.SymbolPairs = {}
+Parser.SymbolPairs[TokenTypes.STARTSCRIPT] = TokenTypes.ENDSCRIPT
+Parser.SymbolPairs[TokenTypes.STARTTEMPLATE] = TokenTypes.ENDTEMPLATE
+Parser.SymbolPairs[TokenTypes.STARTFUNCTION] = TokenTypes.ENDFUNCTION
+Parser.SymbolPairs[TokenTypes.FOREACH] = TokenTypes.ENDFOREACH
+Parser.SymbolPairs[TokenTypes.IF] = TokenTypes.ENDIF
 
 -- Returns tree of nodes
 function Parser.ParseFile(path, settings)
@@ -277,6 +286,55 @@ function Parser:FindClosingSymbol(cursor, openingSymbol, closingSymbol, assertOn
     end
 
     assert((not assertOnFail) or (result ~= nil), "Mismatched symbol "..TokenTypes.ToString[openingSymbol].." was located at "..self:ToString(cursor))
+    
+    return result
+end
+
+function Parser:FindSymbolAtDepth(cursor, openingSymbol, symbolsToFind, symbolPairs)
+    assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
+	self:ValidateCursor(cursor)
+    assert(Util.TestUtil.IsNumber(openingSymbol))
+    assert(Util.TestUtil.IsTable(symbolsToFind))
+	assert(Util.TestUtil.IsTable(symbolPairs))
+	for opener, closer in pairs(symbolPairs) do
+		assert(Util.TestUtil.IsNumber(opener))
+		assert(Util.TestUtil.IsNumber(closer))
+	end
+
+    assert(self:Peek(cursor) == openingSymbol, "Searching for closing symbol when opening symbol didn't even match!")
+    cursor = self:Advance(cursor) -- skip the opening symbol
+
+    local result = nil
+    local depthCount = 0
+	local closingSymbolStack = SimpleStack:Create()
+    while self:Peek(cursor) ~= nil and result == nil do
+        local symbolAtCursor = self:Peek(cursor)
+		local foundMatch = false
+		for opener, closer in pairs(symbolPairs) do
+			if not foundMatch then
+				if symbolAtCursor == opener then
+					closingSymbolStack:push(closer)
+					foundMatch = true
+				elseif closingSymbolStack:getn() > 0 and symbolAtCursor == closingSymbolStack:peek() then
+					closingSymbolStack:pop()
+					foundMatch = true
+				end
+			end
+		end
+		
+		if not foundMatch and closingSymbolStack:getn() == 0 then
+			for _, symbolToFind in ipairs(symbolsToFind) do
+				if symbolAtCursor == symbolToFind then
+					result = cursor
+					foundMatch = true
+				end
+			end
+		end
+		
+        cursor = self:Advance(cursor)
+    end
+
+    assert(result ~= nil, "Mismatched symbol "..TokenTypes.ToString[openingSymbol].." was located at "..self:ToString(cursor))
     
     return result
 end
