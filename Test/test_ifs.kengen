@@ -1,7 +1,7 @@
 .STARTSCRIPT
 results = ""
 IF true THEN
-	results = results.."1"
+	results = results.."A"
 ENDIF
 
 IF not true THEN
@@ -9,7 +9,7 @@ IF not true THEN
 ENDIF
 
 IF true THEN
-	results = results.."2"
+	results = results.."B"
 ELSE
 	results = results.."Fail"
 ENDIF
@@ -17,11 +17,11 @@ ENDIF
 IF not true THEN
 	results = results.."Fail"
 ELSE
-	results = results.."3"
+	results = results.."C"
 ENDIF
 
 IF true THEN
-	results = results.."4"
+	results = results.."D"
 ELSEIF true THEN
 	results = results.."Fail"
 ELSE
@@ -31,7 +31,7 @@ ENDIF
 IF false THEN
 	results = results.."Fail"
 ELSEIF true THEN
-	results = results.."5"
+	results = results.."E"
 ELSE
 	results = results.."Fail"
 ENDIF
@@ -39,11 +39,11 @@ ENDIF
 IF not true THEN
 	results = results.."Fail"
 ELSEIF true THEN
-	results = results.."6"
+	results = results.."F"
 ENDIF
 
 IF true THEN
-	results = results.."7"
+	results = results.."G"
 ELSEIF true THEN
 	results = results.."Fail"
 ENDIF
@@ -63,8 +63,28 @@ ELSEIF false THEN
 ELSEIF false THEN
 	results = results.."Fail"
 ELSE
-	results = results.."8"
+	results = results.."H"
 ENDIF
 
->results
+IF false THEN
+ELSEIF true THEN
+	results = results.."I"
+ENDIF
+
+IF true THEN
+ELSEIF true THEN
+	results = results.."Fail"
+ENDIF
+
+IF false THEN
+ELSE
+	results = results.."J"
+ENDIF
+
+IF true THEN
+ELSEIF true THEN
+	results = results.."Fail"
+ENDIF
+
+>$(results)
 .ENDSCRIPT

@@ -22,6 +22,8 @@ end
 
 function PreprocessState:MakeError(lineNum, msg)
 	assert(Util.TestUtil.IsTable(self) and self:IsA(PreprocessState))
+	assert(Util.TestUtil.IsNumber(lineNum))
+	assert(Util.TestUtil.IsString(msg))
 	return self.TokenizedFile.Path..":"..lineNum.." -- "..msg
 end
 

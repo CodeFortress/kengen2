@@ -612,7 +612,7 @@ function Test_Parser:Test_Unit_FindSymbolAtDepth()
 		self.TestLineNumbers.EndDoEmbeddedIf)
 end
 
-function Test_Parser:Test_Unit_ParseBookendedBlock()
+function Test_Parser:Test_Unit_ParseIfBlock()
 	-- TODO -- May be rewriting that function to support more complex logic
 	-- so that each start symbol doesn't require a unique end symbol
 end
@@ -653,6 +653,20 @@ function Test_Integration:Test_Integration_OnSimple()
 	parsedTemplate:Execute(resultsStream)
 	
 	LU.assertEquals(resultsStream.FinalizedData, "Hello, World\nWelcome to Kengen!\n")
+end
+
+function Test_Integration:Test_Integration_OnIfs()
+	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
+	LU.assertTrue(RunningScriptDir ~= nil)
+
+	local parsedTemplate = Parser.ParseFile(RunningScriptDir.."/test_ifs.kengen", Settings:New())
+	LU.assertTrue(parsedTemplate ~= nil)
+	LU.assertTrue(parsedTemplate:IsA(ParsedTemplate))
+	
+	local resultsStream = MemoryOutputStream:New()
+	parsedTemplate:Execute(resultsStream)
+	
+	LU.assertEquals(resultsStream.FinalizedData, "ABCDEFGHIJ\n")
 end
 
 function Test_Integration:Test_Integration_OnCardsSample()

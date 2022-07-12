@@ -5,7 +5,7 @@ local Util = require("kengen2.Util")
 local ScriptChunkParseNode = Util.ClassUtil.CreateClass("ScriptChunkParseNode", AbstractParseNode)
 
 function ScriptChunkParseNode:Preprocess(preprocessState)
-	-- TODO: Actually perform work...
+	-- Nothing to do here yet
 end
 
 function ScriptChunkParseNode:Execute(executionState)

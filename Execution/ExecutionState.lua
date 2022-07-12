@@ -87,6 +87,7 @@ end
 function ExecutionState:LoadLua(textChunk, lineNumStart, lineNumEnd)
 	assert(Util.TestUtil.IsTable(self) and self:IsA(ExecutionState))
 	assert(Util.TestUtil.IsString(textChunk))
+	assert(Util.TestUtil.IsNumber(lineNumStart))
 	
 	local chunkName = "Chunkname_TODO"
 	local result, err = load(textChunk, chunkName, "t", self.LuaLoadEnv)

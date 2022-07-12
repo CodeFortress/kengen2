@@ -5,6 +5,7 @@ local TokenTypes = require("kengen2.Parser.TokenTypes")
 local Util = require("kengen2.Util")
 
 local Lexer = require("kengen2.Parser.Lexer")
+local EmptyParseNode = require("kengen2.Parser.EmptyParseNode")
 local ForeachParseNode = require("kengen2.Parser.ForeachParseNode")
 local FuncParseNode = require("kengen2.Parser.FuncParseNode")
 local IfParseNode = require("kengen2.Parser.IfParseNode")
@@ -157,6 +158,10 @@ function Parser:ParseExecBlock(cursor, last)
 	self:ValidateCursor(cursor)
 	assert(last == nil or Util.TestUtil.IsNumber(last))
 	
+	if Util.TestUtil.IsNumber(last) and last < cursor then
+		return cursor, EmptyParseNode:New(last, last)
+	end
+	
     last = last or self.File.Length
     if self:Peek(cursor) == TokenTypes.IF then
         return self:ParseIfBlock(cursor, last)
@@ -189,42 +194,45 @@ function Parser:ParseIfBlock(cursor, last)
 	assert(Util.TestUtil.IsNumber(last))
 	
 	local cursorStart = cursor
-	
-	local allowedSymbols = {}
-	allowedSymbols[TokenTypes.ELSEIF] = true
-	allowedSymbols[TokenTypes.ELSE] = true
-	allowedSymbols[TokenTypes.ENDIF] = true
-	
-	while #allowedSymbols > 0 do
-		local nextRelevantSymbolPos = self:FindSymbolAtDepth(cursor, TokenTypes.IF, { TokenTypes.ELSEIF, TokenTypes.ELSE, TokenTypes.ENDIF })
-		local nextRelevantSymbol = self:Peek(nextRelevantSymbolPos)
-		assert(
-			allowedSymbols[nextRelevantSymbol] == true,
-			"Unexpected structure for IF block starting at "..self:ToString(cursorStart)..
-			" with symbol '"..TokenTypes.ToString[nextRelevantSymbol].."' at "..self:ToString(nextRelevantSymbolPos))
 		
-		if nextRelevantSymbol == TokenTypes.ELSEIF then
+	local nextRelevantSymbolPos = self:FindSymbolAtDepth(cursor, TokenTypes.IF, { TokenTypes.ELSEIF, TokenTypes.ELSE, TokenTypes.ENDIF })
+	local nextRelevantSymbol = self:Peek(nextRelevantSymbolPos)
+	local mainIfBlockInnerEnd = nextRelevantSymbolPos - 1
+	
+	local mainIfEnd, ifNodeInner = self:ParseExecBlock(cursor + 1, mainIfBlockInnerEnd)
+	
+	local previousSectionPos = nextRelevantSymbolPos
+	local elseIfNodes = {}
+	local elseNode = nil
+	if nextRelevantSymbol == TokenTypes.ELSEIF then
+		repeat
+			nextRelevantSymbolPos =
+				self:FindSymbolAtDepth(previousSectionPos, TokenTypes.ELSEIF, { TokenTypes.ELSEIF, TokenTypes.ELSE, TokenTypes.ENDIF })
+			nextRelevantSymbol = self:Peek(nextRelevantSymbolPos)
 			
-		elseif nextRelevantSymbol == TokenTypes.ELSE then
-			-- once an ELSE is found, only ENDIF remains
-			allowedSymbols[TokenTypes.ELSEIF] = false
-			allowedSymbols[TokenTypes.ELSE] = false
+			local elseIfEnd, elseIfNode = self:ParseExecBlock(previousSectionPos + 1, nextRelevantSymbolPos - 1)
+			elseIfNodes[#elseIfNodes + 1] = elseIfNode
+			previousSectionPos = nextRelevantSymbolPos
 			
-		elseif nextRelevantSymbol == TokenTypes.ENDIF then
-			-- once an ENDIF is found, the structure is concluded
-			allowedSymbols = {}
-		else
-			error("Unexpected code location reached; why did FindSymbolAtDepth return a position with a "..nextRelevantSymbol)
-		end
-		
-		local chain = nil
-		cursor, chain = self:ParseExecChain(cursor + 1, last-1)
-		assert(chain ~= nil, "Failed to parse "..tostring(TokenTypes.ToString[openingSymbol]).." block")
-		local result = nodeClass:New(chain)
-		cursor = self:Advance(cursor) -- skip over the end token!
+		until(nextRelevantSymbol ~= TokenTypes.ELSEIF)
 	end
+	
+	if nextRelevantSymbol == TokenTypes.ELSE then
+		nextRelevantSymbolPos =
+			self:FindSymbolAtDepth(previousSectionPos, TokenTypes.ELSE, { TokenTypes.ELSEIF, TokenTypes.ELSE, TokenTypes.ENDIF })
+		nextRelevantSymbol = self:Peek(nextRelevantSymbolPos)
 		
-	return cursor, ifNode
+		local elseEnd
+		elseEnd, elseNode = self:ParseExecBlock(previousSectionPos + 1, nextRelevantSymbolPos - 1)
+	end
+	
+	assert(nextRelevantSymbol == TokenTypes.ENDIF,
+		"Unexpected structure for IF block starting at "..self:ToString(cursorStart)..
+		" with symbol '"..TokenTypes.ToString[nextRelevantSymbol].."' at "..self:ToString(nextRelevantSymbolPos))
+	
+	local ifNode = IfParseNode:New(cursorStart, nextRelevantSymbolPos, ifNodeInner, elseIfNodes, elseNode)
+	local newCursor = self:Advance(nextRelevantSymbolPos)
+	return newCursor, ifNode
 end
 
 -- Parses a FOREACH block starting at cursor position; returns a new cursor position and a node
