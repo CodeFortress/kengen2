@@ -6,20 +6,24 @@ database["cards"] = {}
 database["cards"][1] = { Name = "Lightning Bolt", CMC = 1 }
 database["cards"][2] = { Name = "Giant Growth", CMC = 1 }
 database["cards"][3] = { Name = "Divination", CMC = 3 }
-database["cards"][4] = { Name = "Grizzly Bears", CMC = 2 }
-database["cards"][5] = { Name = "Hill Giant", CMC = 4 }
-database["cards"][6] = { Name = "Gray Ogre", CMC = 3 }
+database["cards"][4] = { Name = "Grizzly Bears", CMC = 2, Power = 2, Toughness = 2 }
+database["cards"][5] = { Name = "Hill Giant", CMC = 4, Power = 3, Toughness = 3 }
+database["cards"][6] = { Name = "Gray Ogre", CMC = 3, Power = 2, Toughness = 2 }
 database["cards"][7] = { Name = "Lightning Strike", CMC = 2 }
 database["cards"][8] = { Name = "Control Magic", CMC = 4 }
 
 >// GENERATED, DO NOT MODIFY
 
 STARTTEMPLATE
+>Cards with CMC 2 or more, sorted by CMC:
 .	FOREACH card IN database.cards WHERE card.CMC >=2 BY card.CMC DO
-	$(card.Name) $(card.CMC)
+.		IF card.Power ~= nil and card.Toughness ~= nil THEN
+	$(card.Name) ($(card.CMC)) $(card.Power)/$(card.Toughness)
+.		ELSE
+	$(card.Name) ($(card.CMC))
+.		ENDIF
 .	ENDFOREACH
 ENDTEMPLATE
 --back to script mode
->	here's the rogue line that should be in template mode
 --last line
 ENDSCRIPT

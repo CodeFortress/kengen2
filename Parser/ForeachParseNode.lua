@@ -130,7 +130,7 @@ function ForeachParseNode:PrepareIteration(executionState)
 	if self.ByContents ~= nil then
 		local comparePhrase1 = self.ByContents:gsub(varName, varName.."1")
 		local comparePhrase2 = self.ByContents:gsub(varName, varName.."2")
-		executionState:LoadLua(
+		byFuncLoader = executionState:LoadLua(
 			"return function ("..varName.."1, "..varName.."2) return "..comparePhrase1.." < "..comparePhrase2.." end",
 			self.ForeachLineNum)
 	end

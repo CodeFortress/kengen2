@@ -612,32 +612,7 @@ function Test_Parser:Test_Unit_FindSymbolAtDepth()
 		self.TestLineNumbers.EndDoEmbeddedIf)
 end
 
-function Test_Parser:Test_Unit_ParseIfBlock()
-	-- TODO -- May be rewriting that function to support more complex logic
-	-- so that each start symbol doesn't require a unique end symbol
-end
-
-function Test_Parser:Test_Class_OnSimple()
-	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
-	LU.assertTrue(RunningScriptDir ~= nil)
-
-	local Result = Parser.ParseFile(RunningScriptDir.."/test_simple.kengen", Settings:New())
-	LU.assertTrue(Result ~= nil)
-	LU.assertTrue(Result:IsA(ParsedTemplate))
-	
-	-- TODO Actually verify the output
-end
-
-function Test_Parser:Test_Class_OnComplex()
-	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
-	LU.assertTrue(RunningScriptDir ~= nil)
-
-	local Result = Parser.ParseFile(RunningScriptDir.."/test_complex.kengen", Settings:New())
-	LU.assertTrue(Result ~= nil)
-	LU.assertTrue(Result:IsA(ParsedTemplate))
-	
-	-- TODO Actually verify the output
-end
+-- TODO: Test_Parser should have some unit/class level tests which validate actual parsed node trees
 
 Test_Integration = {}
 
@@ -676,14 +651,37 @@ function Test_Integration:Test_Integration_OnCardsSample()
 	local settings = Settings:New()
 	settings.XML_STYLE_ACCESS = false
 	
-	local parsedTemplate = Parser.ParseFile(RunningScriptDir.."/cockatrice-to-mse/test_cards_sample.kengen", settings)
+	local parsedTemplate = Parser.ParseFile(RunningScriptDir.."/test_cards_sample.kengen", settings)
 	LU.assertTrue(parsedTemplate ~= nil)
 	LU.assertTrue(parsedTemplate:IsA(ParsedTemplate))
 	
 	local resultsStream = MemoryOutputStream:New()
 	parsedTemplate:Execute(resultsStream)
 	
-	-- TODO Actually verify the output
+	local expectedResult =
+	[[// GENERATED, DO NOT MODIFY
+Cards with CMC 2 or more, sorted by CMC:
+	Grizzly Bears (2) 2/2
+	Lightning Strike (2)
+	Divination (3)
+	Gray Ogre (3) 2/2
+	Hill Giant (4) 3/3
+	Control Magic (4)
+]]
+	
+	LU.assertEquals(resultsStream.FinalizedData, expectedResult)
+end
+
+function Test_Integration:Test_Integration_OnComplex()
+	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
+	LU.assertTrue(RunningScriptDir ~= nil)
+
+	local Result = Parser.ParseFile(RunningScriptDir.."/test_complex.kengen", Settings:New())
+	LU.assertTrue(Result ~= nil)
+	LU.assertTrue(Result:IsA(ParsedTemplate))
+	
+	-- TODO Actually verify the output... really though this test may not be an Integration test
+	--	because currently the test_complex won't execute, the script lines aren't valid Lua
 end
 
 function Test_Integration:DISABLED_Test_Class_OnCockatrice()
@@ -700,9 +698,9 @@ function Test_Integration:DISABLED_Test_Class_OnCockatrice()
 	local resultsStream = MemoryOutputStream:New()
 	parsedTemplate:Execute(resultsStream)
 	
-	print(resultsStream.FinalizedData)
-	
-	-- TODO Actually verify the output
+	-- Don't perform any validation -- this test is to make sure that the system can churn through a huge
+	-- XML file and execute a ton of logic without hitting any crashes or asserts.
+	--print(resultsStream.FinalizedData)
 end
 
 os.exit( LU.LuaUnit.run() )
