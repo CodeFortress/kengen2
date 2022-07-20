@@ -23,4 +23,10 @@ function FileOutputStream:WriteLine(line)
 	self.WriteHandle:write("\n")
 end
 
+function FileOutputStream:Close()
+	assert(Util.TestUtil.IsTable(self) and self:IsA(FileOutputStream))
+	
+	self.WriteHandle:close()
+end
+
 return FileOutputStream

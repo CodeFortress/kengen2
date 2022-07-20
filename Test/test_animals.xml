@@ -1,0 +1,9 @@
+<AnimalKingdom>
+	<Grouping Name="Mammal" Parent="Animal" Rank="Class"/>
+	<Grouping Name="Marsupial" Parent="Mammal" Rank="Infraclass"/>
+	<Grouping Name="Koala" Parent="Marsupial" Rank="Species"/>
+	<Grouping Name="Kangaroo" Parent="Marsupial" Rank="Species"/>
+	<Grouping Name="Ursidae" Parent="Mammal" Rank="Family"/>
+	<Grouping Name="GrizzlyBear" Parent="Ursidae" Rank="Species"/>
+	<Grouping Name="PolarBear" Parent="Ursidae" Rank="Species"/>
+</AnimalKingdom>

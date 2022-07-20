@@ -1,0 +1,37 @@
+#include <iostream>
+
+using namespace std;
+
+class Animal
+{
+public:
+    virtual void Append(ostream& stream)
+    {
+        stream << "Animal";
+    }
+    
+    virtual bool IsSpecies() const
+    {
+        return false;
+    }
+};
+
+.FOREACH Grouping IN AnimalKingdom DO
+class $(Grouping.Name) $((Grouping.Rank == "Species" and "final") or "") : public $(Grouping.Parent)
+{
+public:
+    typedef $(Grouping.Parent) super;
+
+    virtual void Append(ostream& stream) override
+    {
+        super::Append(stream);
+        stream << " >> ";
+        stream << "$(Grouping.Name)";
+    }
+    
+    virtual bool IsSpecies() const
+    {
+        return $((Grouping.Rank == "Species" and true) or false);
+    }
+};
+.ENDFOREACH
