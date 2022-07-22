@@ -751,11 +751,15 @@ function Test_Integration:Test_Integration_OnAnimals()
 	local MySettings = Settings:New()
 	MySettings.ACCESS_STYLE_XML = false
 	LU.assertError(function()
-		Kengen.TranslateFile("Test/animals/test_animals.kengen", "Test/animals/test_animals.h", MySettings)
+		Kengen.TranslateFile("Test/animals/test_animals.kengen", nil, MySettings)
 	end)
 
 	MySettings.ACCESS_STYLE_XML = true
-	Kengen.TranslateFile("Test/animals/test_animals.kengen", "Test/animals/test_animals.h", MySettings)
+	local ResultsStream = Kengen.TranslateFile("Test/animals/test_animals.kengen", nil, MySettings)
+	local ResultsToMatchFile = io.open("Test/animals/test_animals.h", "r")
+	local ResultsToMatch = ResultsToMatchFile:read("*a")
+	ResultsToMatchFile:close()
+	LU.assertEquals(ResultsStream.FinalizedData, ResultsToMatch)
 end
 
 function Test_Integration:DISABLED_Test_Class_OnCockatrice()
