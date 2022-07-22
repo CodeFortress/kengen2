@@ -25,7 +25,7 @@ function ExecutionState:New(tokenizedFile, outputStream)
 	-- TODO figure out how to make this not a global but included in the sandbox env
 	-- With current attempt it appears to be visible within loaded chunks, but not within functions called by those chunks
 	hidden_KengenSettingsSingleton = instance.Settings
-	--sandboxEnv["hidden_KengenSettingsSingleton"] = "foo"
+	--instance.LuaLoadEnv["hidden_KengenSettingsSingleton"] = "foo"
 	
 	setmetatable(instance.LuaLoadEnv, {__index = _G})
 	
