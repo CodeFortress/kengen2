@@ -14,7 +14,7 @@ function ScriptChunkParseNode:Execute(executionState)
 	
 	local scriptLines = {}
 	for index = self.StartPos, self.EndPos, 1 do
-		scriptLines[#scriptLines + 1] = executionState:GetRawLine(index)
+		scriptLines[#scriptLines + 1] = executionState:GetCleanLine(index)
 	end
 	
 	local fullChunk = table.concat(scriptLines, "\n")

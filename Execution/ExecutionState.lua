@@ -18,9 +18,17 @@ function ExecutionState:New(tokenizedFile, outputStream)
 	
 	-- Create a sub-environment of _G that has access to everything in _G
 	-- This way, called Lua can't screw up our environment, but can still call things in it (e.g. "require")
-	instance.LuaLoadEnv = {}
+	instance.LuaLoadEnv = { }
+	instance.LuaLoadEnv["Kengen"] = require("kengen2")
+	
+	-- Allow settings to be automatically shared by API calls from within this execution state
+	-- TODO figure out how to make this not a global but included in the sandbox env
+	-- With current attempt it appears to be visible within loaded chunks, but not within functions called by those chunks
+	hidden_KengenSettingsSingleton = instance.Settings
+	--sandboxEnv["hidden_KengenSettingsSingleton"] = "foo"
+	
 	setmetatable(instance.LuaLoadEnv, {__index = _G})
-
+	
     return instance
 end
 

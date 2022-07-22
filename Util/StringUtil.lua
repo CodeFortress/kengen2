@@ -1,9 +1,14 @@
+local TestUtil = require("kengen2.Util.TestUtil")
+
 local StringUtil = {}
 
 -- Splits a string based on a provided separator, or whitespace if none is specified
 -- Returns list of substrings
 -- Adapted from: https://stackoverflow.com/a/40180465
 function StringUtil.Split(inputstr, sep)
+	assert(TestUtil.IsString(inputstr))
+	assert(sep == nil or TestUtil.IsString(sep))
+	
     local fields = {}
     
     local sep = sep or " "
@@ -15,6 +20,8 @@ end
 
 -- Returns the string contents of the given filepath
 function StringUtil.FileToString(filepath)
+	assert(TestUtil.IsString(filepath))
+	
     local file = assert(io.open(filepath, "rb"), "Failed to open file with filepath: "..tostring(filepath))
     local content = file:read("*all")
     file:close()
@@ -25,28 +32,40 @@ end
 -- From http://lua-users.org/wiki/StringTrim (it's #5)
  -- warning: has bad performance when string:match'^%s*$' and #string is large
 function StringUtil.Trim(string)
+	assert(TestUtil.IsString(string))
+	
     return string:match'^%s*(.*%S)' or ''
 end
 
 -- Returns a version of the string without whitespace at front
 function StringUtil.TrimStart(string)
+	assert(TestUtil.IsString(string))
+	
     return string:match'^%s*(.*)' or ''
 end
 
 -- Returns a version of the string without whitespace at back
 function StringUtil.TrimEnd(string)
+	assert(TestUtil.IsString(string))
+	
     return string:match'^(.*%S)' or ''
 end
 
 -- Returns whether the string starts with a particular substring
 -- From http://lua-users.org/wiki/StringRecipes
 function StringUtil.StartsWith(str, start)
+	assert(TestUtil.IsString(str))
+	assert(TestUtil.IsString(start))
+	
     return str:sub(1, #start) == start
 end
 
  -- Returns whether the string ends with a particular substring
 -- From http://lua-users.org/wiki/StringRecipes
 function StringUtil.EndsWith(str, ending)
+	assert(TestUtil.IsString(str))
+	assert(TestUtil.IsString(ending))
+	
     return ending == "" or str:sub(-#ending) == ending
 end
 

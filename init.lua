@@ -11,7 +11,10 @@ local FileOutputStream = require("kengen2.Execution.FileOutputStream")
 local ParsedTemplate = require("kengen2.Execution.ParsedTemplate")
 
 function Kengen.LoadXmlFile(path, settings)
-	settings = settings or Kengen.Settings:New()
+	assert(Kengen.Util.TestUtil.IsString(path))
+	assert(settings == nil or (Kengen.Util.TestUtil.IsTable(settings) and settings:IsA(Settings)))
+	settings = settings or hidden_KengenSettingsSingleton or Kengen.Settings:New()
+	
 	assert(settings.ACCESS_STYLE_XML == true)
 	return Kengen.Framework.Xml.loadXmlFile(path, settings)
 end
@@ -19,7 +22,7 @@ end
 function Kengen.TranslateFile(inputPath, outputPath, settings)
 	assert(Kengen.Util.TestUtil.IsString(inputPath))
 	assert(Kengen.Util.TestUtil.IsString(outputPath))
-	assert(settings == nil or Kengen.Util.TestUtil.IsTable(settings))
+	assert(settings == nil or (Kengen.Util.TestUtil.IsTable(settings) and settings:IsA(Kengen.Settings)))
 	settings = settings or Kengen.Settings:New()
 	
 	local parsedTemplate = Kengen.Parser.Parser.ParseFile(inputPath, settings)

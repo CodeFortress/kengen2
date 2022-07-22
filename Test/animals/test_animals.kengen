@@ -16,6 +16,7 @@ public:
     }
 };
 
+.AnimalKingdom = Kengen.LoadXmlFile("Test/animals/test_animals.xml")
 .FOREACH Grouping IN AnimalKingdom DO
 class $(Grouping.Name) $((Grouping.Rank == "Species" and "final") or "") : public $(Grouping.Parent)
 {

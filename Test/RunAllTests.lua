@@ -1,6 +1,8 @@
 LU = require('kengen2.ThirdParty.luaunit.luaunit')
 assert(LU ~= nil)
 
+local Kengen = require("kengen2")
+
 local Iterator = require("kengen2.Framework.Iterator")
 local Settings = require("kengen2.Framework.Settings")
 
@@ -42,6 +44,37 @@ function Test_ClassUtil:Test_Unit_IsAFailsOnNil()
 end
 
 Test_StringUtil = {}
+
+function Test_StringUtil:Test_Unit_StartsWith()
+	LU.assertTrue(StringUtil.StartsWith("foo", ""))
+	LU.assertTrue(StringUtil.StartsWith("foo", "f"))
+	LU.assertTrue(StringUtil.StartsWith("foo", "fo"))
+	LU.assertTrue(StringUtil.StartsWith("foo", "foo"))
+	
+	LU.assertFalse(StringUtil.StartsWith("foo", "o"))
+	LU.assertFalse(StringUtil.StartsWith("foo", " "))
+	LU.assertFalse(StringUtil.StartsWith("foo", ".")) -- make sure it is not treated as regex
+	
+	LU.assertError(function()
+		StringUtil.StartsWith("foo", nil)
+	end)
+	LU.assertError(function()
+		StringUtil.StartsWith("foo", 1)
+	end)
+	LU.assertError(function()
+		StringUtil.StartsWith("foo", {"f"})
+	end)
+
+	LU.assertError(function()
+		StringUtil.StartsWith(nil, "f")
+	end)
+	LU.assertError(function()
+		StringUtil.StartsWith(1, "f")
+	end)
+	LU.assertError(function()
+		StringUtil.StartsWith({"foo"}, "f")
+	end)
+end
 
 function Test_StringUtil:Test_Unit_Trim()
 	LU.assertEquals(StringUtil.Trim(""), "")
@@ -89,6 +122,16 @@ function Test_StringUtil:Test_Unit_Trim()
 	LU.assertEquals(StringUtil.Trim("\na	b\r"), "a	b")
 	LU.assertEquals(StringUtil.Trim("a	b\n"), "a	b")
 	LU.assertEquals(StringUtil.Trim("\na	b\n"), "a	b")
+
+	LU.assertError(function()
+		StringUtil.Trim(nil)
+	end)
+	LU.assertError(function()
+		StringUtil.Trim(1)
+	end)
+	LU.assertError(function()
+		StringUtil.Trim({"foo"})
+	end)
 end
 
 function Test_StringUtil:Test_Unit_TrimStart()
@@ -137,6 +180,16 @@ function Test_StringUtil:Test_Unit_TrimStart()
 	LU.assertEquals(StringUtil.TrimStart("\na	b\r"), "a	b\r")
 	LU.assertEquals(StringUtil.TrimStart("a	b\n"), "a	b\n")
 	LU.assertEquals(StringUtil.TrimStart("\na	b\n"), "a	b\n")
+	
+	LU.assertError(function()
+		StringUtil.TrimStart(nil)
+	end)
+	LU.assertError(function()
+		StringUtil.TrimStart(1)
+	end)
+	LU.assertError(function()
+		StringUtil.TrimStart({"foo"})
+	end)
 end
 
 function Test_StringUtil:Test_Unit_End()
@@ -185,6 +238,16 @@ function Test_StringUtil:Test_Unit_End()
 	LU.assertEquals(StringUtil.TrimEnd("\na	b\r"), "\na	b")
 	LU.assertEquals(StringUtil.TrimEnd("a	b\n"), "a	b")
 	LU.assertEquals(StringUtil.TrimEnd("\na	b\n"), "\na	b")
+	
+	LU.assertError(function()
+		StringUtil.TrimEnd(nil)
+	end)
+	LU.assertError(function()
+		StringUtil.TrimEnd(1)
+	end)
+	LU.assertError(function()
+		StringUtil.TrimEnd({"foo"})
+	end)
 end
 
 Test_Iterator = {}
@@ -684,6 +747,17 @@ function Test_Integration:Test_Integration_OnComplex()
 	--	because currently the test_complex won't execute, the script lines aren't valid Lua
 end
 
+function Test_Integration:Test_Integration_OnAnimals()
+	local MySettings = Settings:New()
+	MySettings.ACCESS_STYLE_XML = false
+	LU.assertError(function()
+		Kengen.TranslateFile("Test/animals/test_animals.kengen", "Test/animals/test_animals.h", MySettings)
+	end)
+
+	MySettings.ACCESS_STYLE_XML = true
+	Kengen.TranslateFile("Test/animals/test_animals.kengen", "Test/animals/test_animals.h", MySettings)
+end
+
 function Test_Integration:DISABLED_Test_Class_OnCockatrice()
 	local RunningScriptDir = PathUtil.GetRunningScriptDirectoryPath();
 	LU.assertTrue(RunningScriptDir ~= nil)
@@ -703,4 +777,5 @@ function Test_Integration:DISABLED_Test_Class_OnCockatrice()
 	--print(resultsStream.FinalizedData)
 end
 
+--os.exit( LU.LuaUnit.run("Test_Integration.Test_Integration_OnAnimals") )
 os.exit( LU.LuaUnit.run() )
