@@ -8,6 +8,8 @@ require("kengen2.Test.Util.Test_ClassUtil")
 require("kengen2.Test.Util.Test_FileUtil")
 require("kengen2.Test.Util.Test_PathUtil")
 require("kengen2.Test.Util.Test_StringUtil")
+require("kengen2.Test.Util.Test_TableUtil")
+require("kengen2.Test.Util.Test_TestUtil")
 
 require("kengen2.Test.Test_Integration")
 
