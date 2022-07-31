@@ -14,6 +14,7 @@ local ParsedTemplate = require("kengen2.Execution.ParsedTemplate")
 local FileOutputStream = require("kengen2.Execution.FileOutputStream")
 local MemoryOutputStream = require("kengen2.Execution.MemoryOutputStream")
 
+local FileUtil = require("kengen2.Util.FileUtil")
 local PathUtil = require("kengen2.Util.PathUtil")
 local StringUtil = require("kengen2.Util.StringUtil")
 local TestUtil = require("kengen2.Util.TestUtil")
@@ -97,13 +98,8 @@ function Test_Integration:Test_Integration_OnAnimals()
 
 	MySettings.ACCESS_STYLE_XML = true
 	local ResultsStream = Kengen.TranslateFile("Test/animals/test_animals.kengen", nil, MySettings)
-	local ResultsToMatchFile = io.open("Test/animals/test_animals.h", "r")
-	local ResultsToMatch = ResultsToMatchFile:read("*a")
-	ResultsToMatchFile:close()
+	local ResultsToMatch = FileUtil.FileToString("Test/animals/test_animals.h")
 	
-	-- TODO this feels a little flimsy. It breaks if switched to "rb" open mode here OR "r" in FileUtil.FileToString,
-	--	since loading the kengen files uses that function and apparently produces different results.
-	--  Probably should come up with something more newline-agnostic, or understand the expected differences
 	LU.assertEquals(ResultsStream.FinalizedData, ResultsToMatch)
 end
 

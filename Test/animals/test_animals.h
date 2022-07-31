@@ -1,7 +1,5 @@
 #include <iostream>
-
 using namespace std;
-
 class Animal
 {
 public:
@@ -15,12 +13,10 @@ public:
         return false;
     }
 };
-
 class Mammal  : public Animal
 {
 public:
     typedef Animal super;
-
     virtual void Append(ostream& stream) override
     {
         super::Append(stream);
@@ -37,7 +33,6 @@ class Marsupial  : public Mammal
 {
 public:
     typedef Mammal super;
-
     virtual void Append(ostream& stream) override
     {
         super::Append(stream);
@@ -54,7 +49,6 @@ class Koala final : public Marsupial
 {
 public:
     typedef Marsupial super;
-
     virtual void Append(ostream& stream) override
     {
         super::Append(stream);
@@ -71,7 +65,6 @@ class Kangaroo final : public Marsupial
 {
 public:
     typedef Marsupial super;
-
     virtual void Append(ostream& stream) override
     {
         super::Append(stream);
@@ -88,7 +81,6 @@ class Ursidae  : public Mammal
 {
 public:
     typedef Mammal super;
-
     virtual void Append(ostream& stream) override
     {
         super::Append(stream);
@@ -105,7 +97,6 @@ class GrizzlyBear final : public Ursidae
 {
 public:
     typedef Ursidae super;
-
     virtual void Append(ostream& stream) override
     {
         super::Append(stream);
@@ -122,7 +113,6 @@ class PolarBear final : public Ursidae
 {
 public:
     typedef Ursidae super;
-
     virtual void Append(ostream& stream) override
     {
         super::Append(stream);

@@ -5,7 +5,7 @@ local Util = require("kengen2.Util")
 local TemplateChunkParseNode = Util.ClassUtil.CreateClass("TemplateChunkParseNode", AbstractParseNode)
 
 function TemplateChunkParseNode:Preprocess(preprocessState)
-	-- TODO: Actually perform work...
+	-- Nothing to do here
 end
 
 function TemplateChunkParseNode:Execute(executionState)
