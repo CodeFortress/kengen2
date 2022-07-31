@@ -3,7 +3,7 @@ local Util = require("kengen2.Util")
 local PreprocessState = require("kengen2.Execution.PreprocessState")
 local ExecutionState = require("kengen2.Execution.ExecutionState")
 local Settings = require("kengen2.Framework.Settings")
-local ListParseNode = require("kengen2.Parser.ListParseNode")
+local ListParseNode = require("kengen2.Parser.Nodes.ListParseNode")
 local TokenizedFile = require("kengen2.Parser.TokenizedFile")
 local IOutputStream = require("kengen2.Execution.IOutputStream")
 

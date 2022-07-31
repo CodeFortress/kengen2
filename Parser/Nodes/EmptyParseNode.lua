@@ -1,4 +1,4 @@
-local AbstractParseNode = require("kengen2.Parser.AbstractParseNode")
+local AbstractParseNode = require("kengen2.Parser.Nodes.AbstractParseNode")
 local ExecutionState = require("kengen2.Execution.ExecutionState")
 local PreprocessState = require("kengen2.Execution.PreprocessState")
 local Util = require("kengen2.Util")

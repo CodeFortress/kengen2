@@ -6,9 +6,9 @@ local Lexer = require("kengen2.Parser.Lexer")
 local Parser = require("kengen2.Parser.Parser")
 local TokenTypes = require("kengen2.Parser.TokenTypes")
 
-local FuncParseNode = require("kengen2.Parser.FuncParseNode")
-local ListParseNode = require("kengen2.Parser.ListParseNode")
-local ScriptChunkParseNode = require("kengen2.Parser.ScriptChunkParseNode")
+local FuncParseNode = require("kengen2.Parser.Nodes.FuncParseNode")
+local ListParseNode = require("kengen2.Parser.Nodes.ListParseNode")
+local ScriptChunkParseNode = require("kengen2.Parser.Nodes.ScriptChunkParseNode")
 
 local StringUtil = require("kengen2.Util.StringUtil")
 

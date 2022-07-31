@@ -1,6 +1,6 @@
 local ExecutionState = require("kengen2.Execution.ExecutionState")
 local Iterator = require("kengen2.Framework.Iterator")
-local ListParseNode = require("kengen2.Parser.ListParseNode")
+local ListParseNode = require("kengen2.Parser.Nodes.ListParseNode")
 local PreprocessState = require("kengen2.Execution.PreprocessState")
 local Util = require("kengen2.Util")
 
