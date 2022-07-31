@@ -5,6 +5,7 @@ require("kengen2.Test.Framework.Test_Iterator")
 require("kengen2.Test.Parser.Test_Lexer")
 require("kengen2.Test.Parser.Test_Parser")
 require("kengen2.Test.Util.Test_ClassUtil")
+require("kengen2.Test.Util.Test_PathUtil")
 require("kengen2.Test.Util.Test_StringUtil")
 
 require("kengen2.Test.Test_Integration")

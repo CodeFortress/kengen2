@@ -3,34 +3,42 @@ local StringUtil = require("kengen2.Util.StringUtil")
 
 Test_StringUtil = {}
 
-function Test_StringUtil:Test_Unit_StartsWith()
-	LU.assertTrue(StringUtil.StartsWith("foo", ""))
-	LU.assertTrue(StringUtil.StartsWith("foo", "f"))
-	LU.assertTrue(StringUtil.StartsWith("foo", "fo"))
-	LU.assertTrue(StringUtil.StartsWith("foo", "foo"))
+function Test_StringUtil:Test_Unit_Split()
+	LU.assertEquals(StringUtil.SplitOnSpacebarOnly(""), {})
+	LU.assertEquals(StringUtil.SplitOnSpacebarOnly("foo"), {"foo"})
+	LU.assertEquals(StringUtil.SplitOnSpacebarOnly("foo bar"), {"foo", "bar"})
+	LU.assertEquals(StringUtil.SplitOnSpacebarOnly(" foo bar "), {"foo", "bar"})
+	LU.assertEquals(StringUtil.SplitOnSpacebarOnly(" foo     bar "), {"foo", "bar"})
+	LU.assertEquals(StringUtil.SplitOnSpacebarOnly(" foo  a  bar "), {"foo", "a", "bar"})
 	
-	LU.assertFalse(StringUtil.StartsWith("foo", "o"))
-	LU.assertFalse(StringUtil.StartsWith("foo", " "))
-	LU.assertFalse(StringUtil.StartsWith("foo", ".")) -- make sure it is not treated as regex
+	local strWithSpaceThenTab = "foo a	bar"
+	LU.assertEquals(StringUtil.SplitOnSpacebarOnly(strWithSpaceThenTab), {"foo", "a	bar"})
+	LU.assertEquals(StringUtil.SplitOnCharacters(strWithSpaceThenTab, " 	"), {"foo", "a", "bar"}) -- characters includes space AND tab
+	
+	-- it's per-character, not by string, so all that's left is z
+	LU.assertEquals(StringUtil.SplitOnCharacters("foobarbaz", "foobar"), {"z"})
 	
 	LU.assertError(function()
-		StringUtil.StartsWith("foo", nil)
+		StringUtil.SplitOnSpacebarOnly(nil)
 	end)
 	LU.assertError(function()
-		StringUtil.StartsWith("foo", 1)
+		StringUtil.SplitOnSpacebarOnly(1)
 	end)
 	LU.assertError(function()
-		StringUtil.StartsWith("foo", {"f"})
+		StringUtil.SplitOnSpacebarOnly({"f"})
+	end)
+	LU.assertError(function()
+		StringUtil.SplitOnSpacebarOnly(true)
 	end)
 
 	LU.assertError(function()
-		StringUtil.StartsWith(nil, "f")
+		StringUtil.SplitOnCharacters("foo", 1)
 	end)
 	LU.assertError(function()
-		StringUtil.StartsWith(1, "f")
+		StringUtil.SplitOnCharacters("foo", {"f"})
 	end)
 	LU.assertError(function()
-		StringUtil.StartsWith({"foo"}, "f")
+		StringUtil.SplitOnCharacters("foo", true)
 	end)
 end
 
@@ -150,7 +158,7 @@ function Test_StringUtil:Test_Unit_TrimStart()
 	end)
 end
 
-function Test_StringUtil:Test_Unit_End()
+function Test_StringUtil:Test_Unit_TrimEnd()
 	LU.assertEquals(StringUtil.TrimEnd(""), "")
 	LU.assertEquals(StringUtil.TrimEnd(" "), "")
 	LU.assertEquals(StringUtil.TrimEnd("	"), "")
@@ -205,6 +213,68 @@ function Test_StringUtil:Test_Unit_End()
 	end)
 	LU.assertError(function()
 		StringUtil.TrimEnd({"foo"})
+	end)
+end
+
+function Test_StringUtil:Test_Unit_StartsWith()
+	LU.assertTrue(StringUtil.StartsWith("foo", ""))
+	LU.assertTrue(StringUtil.StartsWith("foo", "f"))
+	LU.assertTrue(StringUtil.StartsWith("foo", "fo"))
+	LU.assertTrue(StringUtil.StartsWith("foo", "foo"))
+	
+	LU.assertFalse(StringUtil.StartsWith("foo", "o"))
+	LU.assertFalse(StringUtil.StartsWith("foo", " "))
+	LU.assertFalse(StringUtil.StartsWith("foo", ".")) -- make sure it is not treated as regex
+	
+	LU.assertError(function()
+		StringUtil.StartsWith("foo", nil)
+	end)
+	LU.assertError(function()
+		StringUtil.StartsWith("foo", 1)
+	end)
+	LU.assertError(function()
+		StringUtil.StartsWith("foo", {"f"})
+	end)
+
+	LU.assertError(function()
+		StringUtil.StartsWith(nil, "f")
+	end)
+	LU.assertError(function()
+		StringUtil.StartsWith(1, "f")
+	end)
+	LU.assertError(function()
+		StringUtil.StartsWith({"foo"}, "f")
+	end)
+end
+
+function Test_StringUtil:Test_Unit_EndsWith()
+	LU.assertTrue(StringUtil.EndsWith("foo", ""))
+	LU.assertTrue(StringUtil.EndsWith("foo", "o"))
+	LU.assertTrue(StringUtil.EndsWith("foo", "oo"))
+	LU.assertTrue(StringUtil.EndsWith("foo", "foo"))
+	
+	LU.assertFalse(StringUtil.EndsWith("foo", "f"))
+	LU.assertFalse(StringUtil.EndsWith("foo", " "))
+	LU.assertFalse(StringUtil.EndsWith("foo", ".")) -- make sure it is not treated as regex
+	
+	LU.assertError(function()
+		StringUtil.EndsWith("foo", nil)
+	end)
+	LU.assertError(function()
+		StringUtil.EndsWith("foo", 1)
+	end)
+	LU.assertError(function()
+		StringUtil.EndsWith("foo", {"f"})
+	end)
+
+	LU.assertError(function()
+		StringUtil.EndsWith(nil, "f")
+	end)
+	LU.assertError(function()
+		StringUtil.EndsWith(1, "f")
+	end)
+	LU.assertError(function()
+		StringUtil.EndsWith({"foo"}, "f")
 	end)
 end
 

@@ -1,4 +1,5 @@
 local Settings = require ("kengen2.Framework.Settings")
+local FileUtil = require("kengen2.Util.FileUtil")
 local StringUtil = require("kengen2.Util.StringUtil")
 local TableUtil = require("kengen2.Util.TableUtil")
 local TestUtil = require("kengen2.Util.TestUtil")
@@ -17,7 +18,7 @@ function Lexer.Tokenize(filepath, settings)
 	assert(TestUtil.IsString(filepath))
 	assert(TestUtil.IsTable(settings) and settings:IsA(Settings))
 	
-	local content = StringUtil.FileToString(filepath)
+	local content = FileUtil.FileToString(filepath)
 	local stringsByLine, cleanStringsByLine, tokens = Lexer.TokenizeImpl(filepath, content, settings)
 	return TokenizedFile:New(filepath, stringsByLine, cleanStringsByLine, tokens, settings)
 end
@@ -126,7 +127,7 @@ function Lexer.TokenizeImpl(debugName, stringContents, settings)
 	assert(TestUtil.IsString(stringContents))
 	assert(TestUtil.IsTable(settings) and settings:IsA(Settings))
 	
-    local stringsByLine = StringUtil.Split(stringContents, "\n")
+    local stringsByLine = StringUtil.SplitOnCharacters(stringContents, "\n")
 	local cleanStringsByLine = {}
     local tokens = {}
     local isTemplateModeStack = {}

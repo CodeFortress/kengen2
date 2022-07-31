@@ -5,27 +5,21 @@ local StringUtil = {}
 -- Splits a string based on a provided separator, or whitespace if none is specified
 -- Returns list of substrings
 -- Adapted from: https://stackoverflow.com/a/40180465
-function StringUtil.Split(inputstr, sep)
+function StringUtil.SplitOnCharacters(inputstr, sep)
 	assert(TestUtil.IsString(inputstr))
-	assert(sep == nil or TestUtil.IsString(sep))
+	assert(sep ~= nil and TestUtil.IsString(sep))
 	
     local fields = {}
     
-    local sep = sep or " "
     local pattern = string.format("([^%s]+)", sep)
     string.gsub(inputstr, pattern, function(c) fields[#fields + 1] = c end)
     
     return fields
 end
 
--- Returns the string contents of the given filepath
-function StringUtil.FileToString(filepath)
-	assert(TestUtil.IsString(filepath))
-	
-    local file = assert(io.open(filepath, "rb"), "Failed to open file with filepath: "..tostring(filepath))
-    local content = file:read("*all")
-    file:close()
-    return content
+function StringUtil.SplitOnSpacebarOnly(inputstr)
+	assert(TestUtil.IsString(inputstr))
+	return StringUtil.SplitOnCharacters(inputstr, " ")
 end
 
 -- Returns a version of the string without whitespace at front or back

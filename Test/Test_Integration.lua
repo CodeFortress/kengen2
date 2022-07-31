@@ -101,7 +101,7 @@ function Test_Integration:Test_Integration_OnAnimals()
 	local ResultsToMatch = ResultsToMatchFile:read("*a")
 	ResultsToMatchFile:close()
 	
-	-- TODO this feels a little flimsy. It breaks if switched to "rb" open mode here OR "r" in StringUtil.FileToString,
+	-- TODO this feels a little flimsy. It breaks if switched to "rb" open mode here OR "r" in FileUtil.FileToString,
 	--	since loading the kengen files uses that function and apparently produces different results.
 	--  Probably should come up with something more newline-agnostic, or understand the expected differences
 	LU.assertEquals(ResultsStream.FinalizedData, ResultsToMatch)

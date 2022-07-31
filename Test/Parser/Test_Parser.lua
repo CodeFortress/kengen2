@@ -46,7 +46,7 @@ function Test_Parser:setUp()
 			.print("Skipping embedded if")
 		ENDIF -- doEmbeddedIf
 		]]
-	local sampleFileLines = StringUtil.Split(sampleFile, "\n")
+	local sampleFileLines = StringUtil.SplitOnCharacters(sampleFile, "\n")
 	local findLineNumber = function(lines, substring)
 		for index, value in ipairs(sampleFileLines) do
 			if value:find(substring, 1, true --[[disable regex]]) ~= nil then
