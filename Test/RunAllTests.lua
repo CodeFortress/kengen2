@@ -2,8 +2,13 @@ local LU = require('kengen2.ThirdParty.luaunit.luaunit')
 assert(LU ~= nil)
 
 require("kengen2.Test.Framework.Test_Iterator")
+
 require("kengen2.Test.Parser.Test_Lexer")
 require("kengen2.Test.Parser.Test_Parser")
+require("kengen2.Test.Parser.Test_Token")
+require("kengen2.Test.Parser.Test_TokenizedFile")
+require("kengen2.Test.Parser.Test_TokenTypes")
+
 require("kengen2.Test.Util.Test_ClassUtil")
 require("kengen2.Test.Util.Test_FileUtil")
 require("kengen2.Test.Util.Test_PathUtil")

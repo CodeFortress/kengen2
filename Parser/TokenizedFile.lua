@@ -1,4 +1,5 @@
 local Settings = require("kengen2.Framework.Settings")
+local Token = require("kengen2.Parser.Token")
 local TokenTypes = require("kengen2.Parser.TokenTypes")
 local Util = require("kengen2.Util")
 
@@ -21,14 +22,21 @@ function TokenizedFile:New(path, stringsByLine, cleanStringsByLine, tokens, sett
     result.Tokens = tokens
 	result.Settings = settings
 	
-    result.TokensByLine = {}
-    for _, token in ipairs(result.Tokens) do
-        for pos = token.StartPos, token.EndPos, 1 do
-            result.TokensByLine[pos] = token
-        end
-    end
+    result.TokensByLine = TokenizedFile.MakeTokensByLine(result.Tokens)
 	
     return result
+end
+
+-- intentionally static helper
+function TokenizedFile.MakeTokensByLine(tokens)
+	local tokensByLine = {}
+	for _, token in ipairs(tokens) do
+		assert(Util.TestUtil.IsTable(token) and token:IsA(Token))
+        for pos = token.StartPos, token.EndPos, 1 do
+            tokensByLine[pos] = token
+        end
+    end
+	return tokensByLine
 end
 
 function TokenizedFile:__tostring()

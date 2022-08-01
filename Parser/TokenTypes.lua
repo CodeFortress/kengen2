@@ -1,7 +1,7 @@
 local TableUtil = require("kengen2.Util.TableUtil")
 
 local TokenTypes = {
-    Invalid = "Invalid",
+    Invalid = "~~Invalid~~",
     STARTSCRIPT = "STARTSCRIPT",
     ENDSCRIPT = "ENDSCRIPT",
     STARTTEMPLATE = "STARTTEMPLATE",
