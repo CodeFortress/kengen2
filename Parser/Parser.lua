@@ -88,7 +88,7 @@ function Parser:CurTokenString(cursor)
 	self:ValidateCursor(cursor)
 
 	local token = self.File.TokensByLine[cursor]
-    return tostring(TokenTypes.ToString[token.Type])
+    return tostring(token.Type)
 end
 
 -- Root of parser logic
@@ -119,15 +119,15 @@ function Parser:ParseBookendedBlock(cursor, last, openingSymbol, closingSymbol, 
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
 	self:ValidateCursor(cursor)
     assert(Util.TestUtil.IsNumber(last))
-    assert(Util.TestUtil.IsNumber(openingSymbol))
-    assert(Util.TestUtil.IsNumber(closingSymbol))
+    --assert(Util.TestUtil.IsNumber(openingSymbol))
+    --assert(Util.TestUtil.IsNumber(closingSymbol))
     assert(Util.TestUtil.IsTable(nodeClass))
     assert(self:Peek(cursor) == openingSymbol)
 
 	last = self:FindSymbolAtDepth(cursor, openingSymbol, { closingSymbol })
 	local chain = nil
     cursor, chain = self:ParseExecChain(cursor + 1, last-1)
-    assert(chain ~= nil, "Failed to parse "..tostring(TokenTypes.ToString[openingSymbol]).." block")
+    assert(chain ~= nil, "Failed to parse "..tostring(openingSymbol).." block")
     local result = nodeClass:New(chain)
     cursor = self:Advance(cursor) -- skip over the end token!
     return cursor, result
@@ -228,7 +228,7 @@ function Parser:ParseIfBlock(cursor, last)
 	
 	assert(nextRelevantSymbol == TokenTypes.ENDIF,
 		"Unexpected structure for IF block starting at "..self:ToString(cursorStart)..
-		" with symbol '"..TokenTypes.ToString[nextRelevantSymbol].."' at "..self:ToString(nextRelevantSymbolPos))
+		" with symbol '"..tostring(nextRelevantSymbol).."' at "..self:ToString(nextRelevantSymbolPos))
 	
 	local ifNode = IfParseNode:New(cursorStart, nextRelevantSymbolPos, ifNodeInner, elseIfNodes, elseNode)
 	local newCursor = self:Advance(nextRelevantSymbolPos)
@@ -262,7 +262,7 @@ function Parser:ParseBasicChunk(cursor, last, symbol, nodeClass)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
 	self:ValidateCursor(cursor)
     assert(Util.TestUtil.IsNumber(last))
-    assert(Util.TestUtil.IsNumber(symbol))
+    assert(TokenTypes.IsToken(symbol))
     assert(Util.TestUtil.IsTable(nodeClass))
     assert(self:Peek(cursor) == symbol)
 
@@ -307,11 +307,11 @@ end
 function Parser:FindSymbolAtDepth(cursor, openingSymbol, symbolsToFind)
     assert(Util.TestUtil.IsTable(self) and self:IsA(Parser))
 	self:ValidateCursor(cursor)
-    assert(Util.TestUtil.IsNumber(openingSymbol))
+    assert(TokenTypes.IsToken(openingSymbol))
     assert(Util.TestUtil.IsTable(symbolsToFind))
 	assert(#symbolsToFind > 0)
 	for _, symbol in ipairs(symbolsToFind) do
-		assert(Util.TestUtil.IsNumber(symbol))
+		assert(TokenTypes.IsToken(symbol))
 	end
 
     assert(self:Peek(cursor) == openingSymbol, "Searching for closing symbol when opening symbol didn't even match!")
@@ -351,7 +351,7 @@ function Parser:FindSymbolAtDepth(cursor, openingSymbol, symbolsToFind)
 
     assert(
 		result ~= nil,
-		"Mismatched symbol "..TokenTypes.ToString[openingSymbol].." was located at chunk starting at "..self:ToString(cursorStart))
+		"Mismatched symbol "..openingSymbol.." was located at chunk starting at "..self:ToString(cursorStart))
     
     return result
 end

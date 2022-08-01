@@ -104,16 +104,16 @@ function Test_Parser:Test_Unit_CursorLookups()
 	
 	LU.assertEquals(
 		self.SampleParser:CurTokenString(self.TestLineNumbers.StartScriptHelloWorld),
-		TokenTypes.ToString[TokenTypes.STARTSCRIPT])
+		TokenTypes.STARTSCRIPT)
 	LU.assertEquals(
 		self.SampleParser:CurTokenString(self.TestLineNumbers.StartScriptHelloWorld + 1),
-		TokenTypes.ToString[TokenTypes.ScriptLine])
+		TokenTypes.ScriptLine)
 	LU.assertEquals(
 		self.SampleParser:CurTokenString(self.TestLineNumbers.StartScriptHelloWorld + 2),
-		TokenTypes.ToString[TokenTypes.ScriptLine])
+		TokenTypes.ScriptLine)
 	LU.assertEquals(
 		self.SampleParser:CurTokenString(self.TestLineNumbers.EndScriptHelloWorld),
-		TokenTypes.ToString[TokenTypes.ENDSCRIPT])
+		TokenTypes.ENDSCRIPT)
 end
 
 function Test_Parser:Test_Unit_ParseBlock()
