@@ -11,7 +11,6 @@ local Parser = require("kengen2.Parser.Parser")
 local TokenTypes = require("kengen2.Parser.TokenTypes")
 
 local ParsedTemplate = require("kengen2.Execution.ParsedTemplate")
-local FileOutputStream = require("kengen2.Execution.FileOutputStream")
 local MemoryOutputStream = require("kengen2.Execution.MemoryOutputStream")
 
 local FileUtil = require("kengen2.Util.FileUtil")
