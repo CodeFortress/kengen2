@@ -1,0 +1,20 @@
+{
+  "name": "Lua Development",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "sumneko.lua",
+        "trixnz.vscode-lua"
+      ]
+    }
+  }
+}
+
